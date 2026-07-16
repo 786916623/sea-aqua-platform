@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>气象海洋 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>气象海洋</h1><p>和风天气（实时+3天预报）· 潮汐 · 预警 / 台台 · 随顶栏全局范围联动 · <span data-scope-label>全部站点</span></p></div>
+        <div><span class="tag blue" data-scope-chip style="display:none"></span></div>
+      </div>
+
+      <div class="grid cols-2-1">
+        <div class="card">
+          <div class="card-h"><h3>🌤️ 实时天气 · <span id="wSite">连江渔排</span></h3><span class="muted small">07-15 22:44</span></div>
+          <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <div style="font-size:54px">☀️</div>
+            <div><div style="font-size:38px;font-weight:700">28°C</div><div class="muted">晴 · 体感 29°C</div></div>
+            <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:18px;flex:1;min-width:300px">
+              <div><div class="muted small">风向风力</div><b>东南风 4级</b></div>
+              <div><div class="muted small">湿度</div><b>79%</b></div>
+              <div><div class="muted small">气压</div><b>1004 hPa</b></div>
+              <div><div class="muted small">降水量</div><b>0.0 mm</b></div>
+              <div><div class="muted small">能见度</div><b>30 km</b></div>
+              <div><div class="muted small">风速</div><b>21 km/h</b></div>
+            </div>
+          </div>
+          <hr>
+          <div class="grid cols-3">
+            <div class="center"><div class="muted small">今天</div><div style="font-size:24px">☀️</div><b>33/27°C</b><div class="small">晴转多云</div></div>
+            <div class="center"><div class="muted small">明天</div><div style="font-size:24px">⛅</div><b>34/26°C</b><div class="small">多云</div></div>
+            <div class="center"><div class="muted small">后天</div><div style="font-size:24px">⛅</div><b>34/26°C</b><div class="small">多云</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🌊 潮汐 · 闽江口-川石</h3></div>
+          <div id="tide" class="chart sm" style="height:180px"></div>
+          <table class="small">
+            <tr><td class="muted">下次低潮</td><td>05:30 · 1.7m</td></tr>
+            <tr><td class="muted">下次高潮</td><td>10:39 · 5.74m</td></tr>
+            <tr><td class="muted">月相</muted></td><td>农历初一 · 大潮期</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid cols-2 mt">
+        <div class="card">
+          <div class="card-h"><h3>🚨 气象预警 / 台风</h3></div>
+          <div class="center muted" style="padding:30px">
+            <div style="font-size:34px">✅</div><div class="mt">当前无活跃预警与台风</div>
+          </div>
+          <div class="small muted">字段已预留（alerts / typhoons），将对接中央气象台台风网 + 和风天气预警 API</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>💨 风速 / 气压趋势（24h）</h3></div>
+          <div id="wind" class="chart"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['数据','气象海洋']);
+function syncWeather(){
+  const v = window.SITE_CTX || '全部站点';
+  document.getElementById('wSite').textContent = v==='全部站点' ? '全站（以连江渔排为代表站）' : v;
+}
+window.addEventListener('sitechange', syncWeather);
+syncWeather();
+const c=id=>echarts.init(document.getElementById(id));
+c('tide').setOption({tooltip:{trigger:'axis'},grid:{left:35,right:15,top:15,bottom:25},
+  xAxis:{type:'category',data:['00','03','06','09','12','15','18','21','24'],axisLabel:{fontSize:10}},
+  yAxis:{type:'value',name:'m'},series:[{type:'line',smooth:true,data:[4.2,2.1,1.7,3.5,5.74,3.0,0.44,3.2,6.32],areaStyle:{opacity:.2,color:'#0ea5e9'},itemStyle:{color:'#0ea5e9'}}]});
+c('wind').setOption({tooltip:{trigger:'axis'},legend:{data:['风速','气压'],top:0,textStyle:{fontSize:11}},
+  grid:{left:55,right:55,top:30,bottom:30,containLabel:true},xAxis:{type:'category',data:['00','03','06','09','12','15','18','21']},
+  yAxis:[{type:'value',name:'km/h',nameGap:18},{type:'value',name:'hPa',nameGap:18}],
+  series:[{name:'风速',type:'line',data:[15,18,20,21,22,21,19,17],itemStyle:{color:'#14b8a6'}},
+    {name:'气压',type:'line',yAxisIndex:1,data:[1006,1005,1005,1004,1004,1004,1005,1005],itemStyle:{color:'#f59e0b'}}]});
+</script>
+</body>
+</html>

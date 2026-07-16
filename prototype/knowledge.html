@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>知识库 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>知识库管理</h1><p>结构化知识（阈值/规则）+ 非结构化资料（文档导入 RAG）· 注入大模型 Prompt 防幻觉 · 规则引擎阈值</p></div>
+        <div><button class="btn" onclick="addKnow()">📥 导入结构化知识</button> <button class="btn primary" onclick="importDoc()">📄 导入资料</button> <button class="btn primary" onclick="injectLLM()">📤 注入大模型</button></div>
+      </div>
+
+      <!-- 页签 -->
+      <div class="chat-tabs" style="border-bottom:1px solid var(--border)">
+        <div class="tab active" id="t1" onclick="switchTab(1)">📊 结构化知识 <span class="tag gray small">46 条</span></div>
+        <div class="tab" id="t2" onclick="switchTab(2)">📄 资料文档（非结构化） <span class="tag gray small">5 份</span></div>
+      </div>
+
+      <!-- 页签1：结构化知识 -->
+      <div id="tabStruct">
+      <!-- 知识筛选：品种 / 规格 / 类别 -->
+      <div class="card mb">
+        <div class="card-h"><h3>📚 知识筛选</h3><span class="small muted">品种 / 规格 / 类别 三维联动</span></div>
+        <div class="kbrow"><span class="kblab">品种</span><div id="spChips">
+          <span class="schip active" onclick="filterKB('sp','全部',this)">全部</span>
+          <span class="schip" onclick="filterKB('sp','大黄鱼',this)">大黄鱼</span>
+          <span class="schip" onclick="filterKB('sp','鲈鱼',this)">鲈鱼</span>
+          <span class="schip" onclick="filterKB('sp','石斑鱼',this)">石斑鱼</span>
+          <span class="schip" onclick="filterKB('sp','真鲷',this)">真鲷</span>
+        </div></div>
+        <div class="kbrow"><span class="kblab">规格</span><div id="specChips">
+          <span class="schip active" onclick="filterKB('spec','全部',this)">全部</span>
+          <span class="schip" onclick="filterKB('spec','<10cm',this)">&lt;10cm</span>
+          <span class="schip" onclick="filterKB('spec','10-20cm',this)">10-20cm</span>
+          <span class="schip" onclick="filterKB('spec','20-30cm',this)">20-30cm</span>
+          <span class="schip" onclick="filterKB('spec','>30cm',this)">&gt;30cm</span>
+        </div></div>
+        <div class="kbrow"><span class="kblab">类别</span><div id="catGrid"></div></div>
+      </div>
+
+      <!-- 知识条目表 -->
+      <div class="card mb">
+        <div class="card-h"><h3>📋 知识条目</h3><span class="tag blue">结构化 · 可检索 · 可注入大模型/规则引擎</span></div>
+        <div class="tbl-wrap"><table id="knowTable">
+          <tr><th>品种</th><th>规格</th><th>分类</th><th>标题</th><th>来源</th><th>用途</th><th>启用</th></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>水质阈值</td><td>大黄鱼水质适宜区间（温/pH/DO/盐度）</td><td>SC/T 2089</td><td>大模型+规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="10-20cm"><td><span class="tag blue">大黄鱼</span></td><td>10-20cm</td><td>投喂经验</td><td>幼鱼投饲率与水温修正</td><td>NY/T 5061</td><td>大模型+规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="20-30cm"><td><span class="tag blue">大黄鱼</span></td><td>20-30cm</td><td>投喂经验</td><td>中成鱼投饲率与摄食节律</td><td>NY/T 5061</td><td>大模型+规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>生长参数</td><td>体长体重 W=0.024·L²·⁸⁴⁸</td><td>选育 F₂ 研究</td><td>大模型</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>告警规则</td><td>DO&lt;3mg/L 泛塘告警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>病害与应急</td><td>高温期应激与病害预防</td><td>养殖手册</td><td>大模型</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="鲈鱼" data-spec="全部"><td><span class="tag blue">鲈鱼</span></td><td>全部</td><td>水质阈值</td><td>鲈鱼水质适宜区间</td><td>文献</td><td>大模型+规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="鲈鱼" data-spec="10-20cm"><td><span class="tag blue">鲈鱼</span></td><td>10-20cm</td><td>投喂经验</td><td>鲈鱼幼鱼投饲率与蛋白需求</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="石斑鱼" data-spec="全部"><td><span class="tag blue">石斑鱼</span></td><td>全部</td><td>水质阈值</td><td>石斑鱼水温/盐度适宜区间</td><td>文献</td><td>大模型+规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="石斑鱼" data-spec=">30cm"><td><span class="tag blue">石斑鱼</span></td><td>&gt;30cm</td><td>病害与应急</td><td>石斑鱼神经坏死病处置</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="真鲷" data-spec="20-30cm"><td><span class="tag blue">真鲷</span></td><td>20-30cm</td><td>投喂经验</td><td>真鲷投喂率与摄食节律</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>告警规则</td><td>水温 &gt;30℃ 高温告警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>告警规则</td><td>pH &lt;7.6 异常告警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>告警规则</td><td>盐度日变 &gt;3ppt 波动告警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="鲈鱼" data-spec="全部"><td><span class="tag blue">鲈鱼</span></td><td>全部</td><td>告警规则</td><td>水温 &gt;30℃ 高温告警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="石斑鱼" data-spec="全部"><td><span class="tag blue">石斑鱼</span></td><td>全部</td><td>告警规则</td><td>水温 &lt;18℃ 低温告警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="真鲷" data-spec="全部"><td><span class="tag blue">真鲷</span></td><td>全部</td><td>告警规则</td><td>DO &lt;4mg/L 预警</td><td>知识库</td><td>规则</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>生长参数</td><td>VBGF：L∞=385mm, k=0.43, t₀=−0.32a</td><td>水产学报</td><td>大模型</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="鲈鱼" data-spec="全部"><td><span class="tag blue">鲈鱼</span></td><td>全部</td><td>生长参数</td><td>鲈鱼体长体重关系 W=aLᵇ</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="石斑鱼" data-spec="全部"><td><span class="tag blue">石斑鱼</span></td><td>全部</td><td>生长参数</td><td>石斑鱼生长方程参数</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="真鲷" data-spec="全部"><td><span class="tag blue">真鲷</span></td><td>全部</td><td>生长参数</td><td>真鲷体长体重关系</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>病害与应急</td><td>弧菌病处置预案</td><td>养殖手册</td><td>大模型</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>病害与应急</td><td>台风前加固与提前起捕预案</td><td>养殖手册</td><td>大模型</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="鲈鱼" data-spec="全部"><td><span class="tag blue">鲈鱼</span></td><td>全部</td><td>病害与应急</td><td>鲈鱼出血病处置</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="石斑鱼" data-spec="全部"><td><span class="tag blue">石斑鱼</span></td><td>全部</td><td>病害与应急</td><td>石斑鱼寄生虫病处置</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="真鲷" data-spec="全部"><td><span class="tag blue">真鲷</span></td><td>全部</td><td>病害与应急</td><td>真鲷虹彩病毒处置</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="大黄鱼" data-spec="全部"><td><span class="tag blue">大黄鱼</span></td><td>全部</td><td>品种生物学</td><td>大黄鱼适宜盐度/温度/食性</td><td>SC/T 2089</td><td>大模型</td><td><div class="switch on"></div></td></tr>
+          <tr data-sp="鲈鱼" data-spec="全部"><td><span class="tag blue">鲈鱼</span></td><td>全部</td><td>品种生物学</td><td>鲈鱼广盐性与生物学特性</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+          <tr data-sp="石斑鱼" data-spec="全部"><td><span class="tag blue">石斑鱼</span></td><td>全部</td><td>品种生物学</td><td>石斑鱼生活史与栖息习性</td><td>文献</td><td>大模型</td><td><div class="switch"></div></td></tr>
+        </table></div>
+        <div class="small muted mt">每条知识标注 <b>品种</b> 与 <b>规格</b>（体长 cm，"全部"表示不限规格）；可按品种+规格组合筛选、单独启停，并按用途注入大模型或规则引擎。</div>
+      </div>
+
+      <div class="grid cols-2-1">
+        <!-- 左：详细表 -->
+        <div>
+          <!-- 阈值表 -->
+          <div class="card mt" id="thrCard">
+            <div class="card-h"><h3 id="thrTitle">💧 水质阈值表（大黄鱼）</h3><span class="tag amber">编辑</span></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>指标</th><th>适宜</th><th>最适</th><th>警戒</th><th>危险</th><th>单位</th><th>启用</th></tr></thead>
+              <tbody id="thrBody"></tbody>
+            </table></div>
+            <div class="small muted mt" id="thrNote"></div>
+          </div>
+
+          <!-- 投喂经验 -->
+          <div class="card mt" id="feedCard">
+            <div class="card-h"><h3 id="feedTitle">🍽️ 投喂经验表</h3></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>规格</th><th>体重阶段</th><th>基础投饲率</th><th>频次</th></tr></thead>
+              <tbody id="feedBody"></tbody>
+            </table></div>
+            <div class="small muted mt">水温修正系数：最适区×1.0 / 18-28℃×0.8 / 14-18或26-30℃×0.5 / &lt;14或&gt;30℃×0.2-0</div>
+          </div>
+
+          <!-- 分类详情（告警规则/生长参数/病害与应急/品种生物学） -->
+          <div class="card mt" id="catDetail" style="display:none">
+            <div class="card-h"><h3 id="catDetailTitle">📋 详情</h3><span class="small muted">点击上方分类卡查看详细列表</span></div>
+            <div class="tbl-wrap"><table id="catDetailBody"></table></div>
+          </div>
+        </div>
+
+        <!-- 右：用途说明 + 来源 -->
+        <div>
+          <div class="card">
+            <div class="card-h"><h3>🔗 知识库用途</h3></div>
+            <table class="small">
+              <tr><td>① 注入大模型</td><td><span class="tag green">一期</span> 结构化 Prompt</td></tr>
+              <tr><td>② 规则引擎</td><td><span class="tag green">一期</span> 告警/投喂基线</td></tr>
+              <tr><td>③ RAG 检索</td><td><span class="tag green">一期</span> 资料文档向量化</td></tr>
+              <tr><td>④ 小模型特征/标签</td><td><span class="tag blue">二期</span></td></tr>
+            </table>
+          </div>
+          <div class="card mt">
+            <div class="card-h"><h3>📖 资料来源</h3></div>
+            <table class="small">
+              <tr><td>SC/T 2089—2018 大黄鱼繁育技术规范</td></tr>
+              <tr><td>NY/T 5061—2002 无公害食品 大黄鱼养殖技术规范</td></tr>
+              <tr><td>水产学报：官井洋大黄鱼 VBGF 参数</td></tr>
+              <tr><td>选育 F₂ 体长体重关系研究</td></tr>
+            </table>
+            <div class="small muted mt">详见《一期知识库-大黄鱼养殖.md》</div>
+          </div>
+          <div class="card mt">
+            <div class="card-h"><h3>🧪 校准记录</h3></div>
+            <div class="timeline">
+              <div class="tl-item"><div class="t">2026-07-15</div><div class="c">初始导入：大黄鱼参数（参考值）</div></div>
+              <div class="tl-item"><div class="t">待办</div><div class="c">按本平台实测体长体重重新拟合 a 值</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /tabStruct -->
+
+      <!-- 页签2：资料文档（非结构化） -->
+      <div id="tabDocs" style="display:none">
+        <div class="grid kpis">
+          <div class="kpi"><div class="ic">📄</div><div class="lbl">资料文档</div><div class="val">5 <small>份</small></div><div class="sub muted">PDF / Word / Excel / TXT</div></div>
+          <div class="kpi"><div class="ic">🧩</div><div class="lbl">切片 chunks</div><div class="val">1,284 <small>块</small></div><div class="sub muted">已向量化</div></div>
+          <div class="kpi"><div class="ic">🔢</div><div class="lbl">向量维度</div><div class="val">1024</div><div class="sub muted">embedding</div></div>
+          <div class="kpi"><div class="ic">🔍</div><div class="lbl">检索方式</div><div class="val">向量+关键字</div><div class="sub ok">混合检索 RAG</div></div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-h"><h3>📥 导入资料文档</h3><span class="tag blue">支持 PDF / Word / Excel / TXT / Markdown / 图片</span></div>
+          <div id="dropZone" style="border:2px dashed #cbd5e1;border-radius:12px;padding:34px;text-align:center;color:#64748b;cursor:pointer;background:#f8fafc" onclick="importDoc()">
+            <div style="font-size:38px">📂</div>
+            <div class="mt"><b>点击选择文件，或拖拽到此处</b></div>
+            <div class="small muted mt">单文件 ≤ 50MB · 导入后自动解析、切片、向量化，纳入大模型 RAG 检索</div>
+          </div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-h"><h3>📚 已导入资料</h3><span class="more" onclick="importDoc()">+ 导入</span></div>
+          <div class="tbl-wrap"><table>
+            <tr><th>文档名</th><th>类型</th><th>大小</th><th>切片数</th><th>状态</th><th>上传时间</th><th>操作</th></tr>
+            <tr><td>📎 SC/T 2089—2018 大黄鱼繁育技术规范.pdf</td><td><span class="tag gray">PDF</span></td><td class="muted">2.4 MB</td><td>186</td><td><span class="tag green">已索引</span></td><td class="muted small">06-02 10:12</td><td><span class="more">重检</span> <span class="more" style="color:var(--red)">删除</span></td></tr>
+            <tr><td>📎 NY/T 5061—2002 无公害食品 大黄鱼养殖技术规范.pdf</td><td><span class="tag gray">PDF</span></td><td class="muted">1.8 MB</td><td>142</td><td><span class="tag green">已索引</span></td><td class="muted small">06-02 10:14</td><td><span class="more">重检</span> <span class="more" style="color:var(--red)">删除</span></td></tr>
+            <tr><td>📎 大黄鱼网箱养殖技术手册.docx</td><td><span class="tag blue">Word</span></td><td class="muted">5.6 MB</td><td>412</td><td><span class="tag green">已索引</span></td><td class="muted small">06-05 09:30</td><td><span class="more">重检</span> <span class="more" style="color:var(--red)">删除</span></td></tr>
+            <tr><td>📎 官井洋大黄鱼生长参数研究.pdf</td><td><span class="tag gray">PDF</span></td><td class="muted">0.9 MB</td><td>58</td><td><span class="tag green">已索引</span></td><td class="muted small">06-10 15:22</td><td><span class="more">重检</span> <span class="more" style="color:var(--red)">删除</span></td></tr>
+            <tr><td>📎 选育F₂体长体重关系与投喂频率研究.pdf</td><td><span class="tag amber">解析中</span></td><td class="muted">3.1 MB</td><td>—</td><td><span class="tag amber">向量化 62%</span></td><td class="muted small">07-15 23:40</td><td><span class="more">重检</span> <span class="more" style="color:var(--red)">删除</span></td></tr>
+          </table></div>
+          <div class="small muted mt">文档经解析→切片→向量化后，与结构化知识一起参与大模型 RAG 检索；可在「AI 智能问答」「智能体分析」中引用。</div>
+        </div>
+      </div><!-- /tabDocs -->
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['AI 智能','知识库管理']);
+document.querySelectorAll('.switch').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+/* 品种 + 规格 + 类别 三维筛选（联动知识分类计数 + 条目表 + 阈值表 + 投喂经验表） */
+let kbSp='全部', kbSpec='全部', kbCat='全部';
+const CATS = [
+  {name:'水质阈值表', map:'水质阈值', desc:'温/pH/DO/盐度'},
+  {name:'投喂经验表', map:'投喂经验', desc:'投饲率/频次'},
+  {name:'告警规则', map:'告警规则', desc:'阈值触发'},
+  {name:'品种生物学', map:'品种生物学', desc:'体长体重等'},
+  {name:'生长参数', map:'生长参数', desc:'VBGF 生长方程'},
+  {name:'病害与应急', map:'病害与应急', desc:'处置预案'},
+];
+/* 分类详情（点告警规则/生长参数/病害与应急/品种生物学 时展示） */
+const CATDETAIL = {
+  '告警规则':{ cols:['指标','条件','级别','建议动作'],
+    '大黄鱼':[['水温','>30℃','关注','减喂、避正午'],['水温','>32℃','危险','停喂、防泛塘'],['溶解氧','<3 mg/L','危险','立即增氧、暂停投喂'],['溶解氧','3-5 mg/L','关注','准备增氧、减喂'],['pH','<7.6 / >8.8','关注','排查水质/校准传感器'],['盐度','日变 >3 ppt','关注','检查淡水注入/换水']],
+    '鲈鱼':[['水温','>30℃','关注','减喂、避高温'],['溶解氧','<3 mg/L','危险','立即增氧']],
+    '石斑鱼':[['水温','<18℃','关注','保温/减喂'],['溶解氧','<3 mg/L','危险','立即增氧']],
+    '真鲷':[['溶解氧','<4 mg/L','关注','增氧、减喂'],['盐度','<25 ppt','关注','检查盐度']] },
+  '生长参数':{ cols:['参数','值','说明'],
+    '大黄鱼':[['体长体重公式','W = 0.024·L^2.848','L 单位 cm，W 单位 g'],['渐近体长 L∞','385.4 mm','VBGF（官井洋群体）'],['生长系数 k','0.43 /年',''],['t₀','−0.32 年',''],['生长拐点年龄','≈ 2.2 龄','']],
+    '鲈鱼':[['体长体重','W = a·Lᵇ','待实测标定 a、b'],['生长模型','VBGF','待实测标定']],
+    '石斑鱼':[['生长模型','VBGF','待实测标定'],['体长体重','W = a·Lᵇ','待实测标定']],
+    '真鲷':[['体长体重','W = a·Lᵇ','待实测标定']] },
+  '病害与应急':{ cols:['病害 / 情形','症状 / 特征','处置'],
+    '大黄鱼':[['弧菌病','体表溃疡、出血、烂鳍','减料、碘制剂药浴、改善水质'],['高温应激','摄食下降、游动迟缓','避高温投喂、增氧'],['台风应急','网衣受力、水位暴涨','加固网衣、降低水位、必要时提前起捕']],
+    '鲈鱼':[['出血病','体表/鳍条出血','隔离、减料、对症处理'],['寄生虫','体表擦痒、黏液增多','淡水浴或药物驱虫']],
+    '石斑鱼':[['神经坏死病','螺旋游动、黑变','降低密度、控温、消毒'],['寄生虫病','体表黏液增多','淡水浴或药物驱虫']],
+    '真鲷':[['虹彩病毒','脾肾肿大、贫血','降低密度、隔离、消毒']] },
+  '品种生物学':{ cols:['项目','内容'],
+    '大黄鱼':[['适宜水温','18-28℃（最适 22-26）'],['适宜盐度','25-32 ppt'],['食性','肉食性（小鱼虾）'],['栖息','暖水性近海中下层']],
+    '鲈鱼':[['适宜水温','15-28℃'],['盐度','广盐性 0-30 ppt（可淡水）'],['食性','肉食性']],
+    '石斑鱼':[['适宜水温','22-30℃（热带）'],['盐度','25-35 ppt'],['习性','底栖、礁区']],
+    '真鲷':[['适宜水温','18-28℃'],['盐度','30-35 ppt（偏高盐）'],['食性','杂食偏肉食']] },
+};
+const SPECIES = {
+  '大黄鱼':{ thr:[['水温','18-28','22-26','<14 / >30','<8 / >32','°C'],['pH','7.8-8.5','8.0-8.2','<7.6 / >8.8','<7.0 / >9.0',''],['溶解氧','≥5','≥6','3-5','<3','mg/L'],['盐度','25-32','28-32','<20 / >35','<15 / >38','ppt'],['氨氮','<0.5','<0.2','0.5-1.0','>1.0','mg/L']],
+    feed:[['<10cm','稚鱼 <10g','4-6%','3-4次/日'],['10-20cm','幼鱼 10-150g','2-4%','2-3次/日'],['20-30cm','中成鱼 150-500g','1-2%','2次/日'],['>30cm','亲鱼 >500g','0.5-1%','1-2次/日']] },
+  '鲈鱼':{ thr:[['水温','15-28','20-24','<10 / >30','<6 / >32','°C'],['pH','7.5-8.5','7.8-8.2','<7.0 / >8.8','<6.5 / >9.0',''],['溶解氧','≥5','≥6','3-5','<3','mg/L'],['盐度','0-30','5-20','—','—','ppt(广盐)'],['氨氮','<0.5','<0.2','0.5-1.0','>1.0','mg/L']],
+    feed:[['<10cm','稚鱼','4-6%','3-4次/日'],['10-20cm','幼鱼','2-3%','2-3次/日'],['20-30cm','成鱼','1-2%','2次/日'],['>30cm','亲鱼','1%','1-2次/日']] },
+  '石斑鱼':{ thr:[['水温','22-30','25-28','<18 / >32','<15 / >34','°C'],['pH','7.8-8.5','8.0-8.2','<7.6 / >8.8','<7.0 / >9.0',''],['溶解氧','≥5','≥6','3-5','<3','mg/L'],['盐度','25-35','30-34','<20 / >38','<15 / >40','ppt'],['氨氮','<0.5','<0.2','0.5-1.0','>1.0','mg/L']],
+    feed:[['<10cm','稚鱼','5-8%','3-4次/日'],['10-20cm','幼鱼','3-5%','2-3次/日'],['20-30cm','成鱼','2-3%','2次/日'],['>30cm','亲鱼','1-2%','1-2次/日']] },
+  '真鲷':{ thr:[['水温','18-28','22-26','<14 / >30','<10 / >32','°C'],['pH','7.8-8.5','8.0-8.2','<7.6 / >8.8','<7.0 / >9.0',''],['溶解氧','≥5','≥6','3-5','<3','mg/L'],['盐度','30-35','32-34','<25 / >38','<20 / >40','ppt'],['氨氮','<0.5','<0.2','0.5-1.0','>1.0','mg/L']],
+    feed:[['<10cm','稚鱼','4-6%','3-4次/日'],['10-20cm','幼鱼','2-4%','2-3次/日'],['20-30cm','成鱼','1-2%','2次/日'],['>30cm','亲鱼','0.5-1%','1-2次/日']] },
+};
+function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+/* 判断某条目是否匹配当前 品种+规格 (+类别) */
+function rowMatch(r, withCat){
+  const sp=r.getAttribute('data-sp'), spec=r.getAttribute('data-spec');
+  const cat=r.children[2].textContent.trim();
+  const okSp = kbSp==='全部'||sp===kbSp;
+  const okSpec = kbSpec==='全部'||spec===kbSpec||spec==='全部';
+  const okCat = !withCat || kbCat==='全部'||cat===kbCat;
+  return okSp&&okSpec&&okCat;
+}
+/* 类别 chips：实时计数 + 可点击筛选 */
+function renderCats(){
+  const rows=[...document.querySelectorAll('#knowTable tr[data-sp]')];
+  const count = map => rows.filter(r=>{ const sp=r.dataset.sp,spec=r.dataset.spec,cat=r.children[2].textContent.trim();
+    return (kbSp==='全部'||sp===kbSp)&&(kbSpec==='全部'||spec===kbSpec||spec==='全部')&&cat===map; }).length;
+  let html = `<span class="schip ${kbCat==='全部'?'active':''}" onclick="toggleCat('全部')">全部</span>`;
+  html += CATS.map(c=>{
+    const n=count(c.map), on=kbCat===c.map;
+    return `<span class="schip ${on?'active':''}" style="${n===0?'opacity:.45':''}" onclick="toggleCat('${c.map}')">${c.name} <b style="color:${on?'#fff':'var(--primary)'}">${n}</b></span>`;
+  }).join('');
+  document.getElementById('catGrid').innerHTML = html;
+}
+function toggleCat(map){ kbCat = (kbCat===map)?'全部':map; applyKnow(); }
+function renderTables(){
+  const spLab = kbSp==='全部' ? '大黄鱼' : kbSp;
+  const d = SPECIES[kbSp] || SPECIES['大黄鱼'];
+  document.getElementById('thrTitle').innerHTML = '💧 水质阈值表（'+spLab+'）';
+  document.getElementById('thrBody').innerHTML = d.thr.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td class="abnormal">${r[4]}</td><td>${r[5]}</td><td><div class="switch on"></div></td></tr>`).join('');
+  document.getElementById('thrNote').textContent = '水质阈值通常适用于该品种全部规格；当前'+(kbSp==='全部'?'默认':'选中')+'：'+spLab+(kbSpec!=='全部'?'（'+kbSpec+'）':'');
+  document.querySelectorAll('#thrBody .switch').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+  const specLab = kbSpec==='全部'?'全部规格':kbSpec;
+  document.getElementById('feedTitle').innerHTML = '🍽️ 投喂经验表（'+spLab+' · '+specLab+'）';
+  let rows = d.feed;
+  if(kbSpec!=='全部') rows = rows.filter(r=>r[0]===kbSpec);
+  document.getElementById('feedBody').innerHTML = rows.length ? rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('') : `<tr><td colspan="4" class="muted center">该品种/规格暂无投喂数据，请导入</td></tr>`;
+}
+/* 统一应用筛选：条目表(三维) + 类别计数 + 阈值/投喂/详情表（按类别显隐） */
+function applyKnow(){
+  document.querySelectorAll('#knowTable tr[data-sp]').forEach(r=>{ r.style.display = rowMatch(r,true)?'':'none'; });
+  renderCats();
+  renderTables();
+  renderCatDetail();
+  // 下方三表按所选类别联动显隐：水质阈值/投喂经验 各显各表；其它类别显分类详情；全部时显阈值+投喂
+  const show = id=>document.getElementById(id).style.display='';
+  const hide = id=>document.getElementById(id).style.display='none';
+  const thr = (kbCat==='全部'||kbCat==='水质阈值');
+  const feed = (kbCat==='全部'||kbCat==='投喂经验');
+  thr?show('thrCard'):hide('thrCard');
+  feed?show('feedCard'):hide('feedCard');
+}
+/* 分类详情：点 告警规则/生长参数/病害与应急/品种生物学 时展示详细列表 */
+function renderCatDetail(){
+  const box=document.getElementById('catDetail');
+  const cd=CATDETAIL[kbCat];
+  if(!cd){ box.style.display='none'; return; }
+  const spLab = kbSp==='全部'?'大黄鱼':kbSp;
+  const rows = cd[spLab] || cd['大黄鱼'];
+  box.style.display='';
+  document.getElementById('catDetailTitle').innerHTML = '📋 '+kbCat+'（'+spLab+'）';
+  document.getElementById('catDetailBody').innerHTML =
+    '<thead><tr>'+cd.cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead>'+
+    '<tbody>'+rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(i===0?'><b>'+esc(c)+'</b>':'>'+esc(c))+'</td>').join('')+'</tr>').join('')+'</tbody>';
+}
+function filterKB(kind,val,el){
+  document.querySelectorAll('#'+(kind==='sp'?'spChips':'specChips')+' .schip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  if(kind==='sp') kbSp=val; else kbSpec=val;
+  applyKnow();
+}
+applyKnow();
+function addKnow(){
+  const body=`<div class="note blue" style="margin-top:0"><span>📥</span><div>支持<b>导入结构化文件</b>（Excel/CSV/JSON，如阈值表、投喂率表、告警规则表）自动解析入库；也可下方<b>手动录入</b>。</div></div>
+  <div class="field mb"><label>导入文件（可选）</label>
+    <div style="border:2px dashed #cbd5e1;border-radius:10px;padding:22px;text-align:center;color:#64748b;cursor:pointer;background:#f8fafc">
+      <div style="font-size:28px">🗂️</div><div class="mt small"><b>点击选择 Excel / CSV / JSON，或拖拽到此处</b></div>
+      <div class="small muted">表头需匹配知识分类字段，如：鱼种|指标|适宜|警戒|危险|单位</div>
+    </div>
+  </div>
+  <div style="text-align:center;color:#94a3b8;margin:-4px 0 8px">— 或 手动录入 —</div>
+  <div class="form-row">
+    <div class="field"><label>品种 *</label><select class="select"><option>大黄鱼</option><option>鲈鱼</option><option>石斑鱼</option><option>真鲷</option><option>自定义…</option></select></div>
+    <div class="field"><label>规格（体长）</label><select class="select"><option>全部</option><option>&lt;10cm</option><option>10-20cm</option><option>20-30cm</option><option>&gt;30cm</option><option>自定义…</option></select></div>
+    <div class="field"><label>知识分类</label><select class="select"><option>水质阈值表</option><option>投喂经验表</option><option>告警规则</option><option>品种生物学</option><option>病害与应急</option></select></div>
+  </div>
+  <div class="field mb"><label>标题 *</label><input class="input" placeholder="如：大黄鱼 20-30cm 投喂率"></div>
+  <div class="field mb"><label>知识内容</label><textarea class="input" style="height:110px" placeholder="可填写阈值、规则、经验描述等，支持结构化键值对…"></textarea></div>
+  <div class="form-row">
+    <div class="field"><label>资料来源</label><input class="input" placeholder="如：SC/T 2089—2018"></div>
+    <div class="field"><label>用途</label><select class="select"><option>注入大模型 + 规则引擎</option><option>仅大模型</option><option>仅规则引擎</option></select></div>
+  </div>`;
+  openModal('📥 导入结构化知识', body, {width:620, saveText:'导入'});
+}
+function injectLLM(){
+  const body=`<div class="center" style="padding:24px 0">
+    <div style="font-size:42px">📤</div>
+    <div class="mt"><b>正在将知识库注入大模型 System Prompt…</b></div>
+    <div class="small muted mt">结构化：水质阈值(7) · 投喂经验(12) · 告警规则(10) · 品种生物学(5)</div>
+    <div class="small muted">非结构化：5 份资料 / 1,284 chunks（RAG 向量检索）</div>
+    <div class="mt" style="height:6px;width:80%;background:#f1f5f9;border-radius:4px;margin:14px auto 0;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,#0ea5e9,#14b8a6)"></div></div>
+    <div class="ok small mt">✅ 注入成功 · 已生效于全部智能体</div>
+  </div>`;
+  openModal('注入大模型', body, {width:460, foot:false});
+}
+/* 页签切换 */
+function switchTab(i){
+  document.getElementById('t1').classList.toggle('active', i===1);
+  document.getElementById('t2').classList.toggle('active', i===2);
+  document.getElementById('tabStruct').style.display = i===1?'':'none';
+  document.getElementById('tabDocs').style.display = i===2?'':'none';
+}
+/* 导入资料文档 */
+function importDoc(){
+  switchTab(2);
+  const body=`<div class="form-row">
+    <div class="field"><label>文档标题</label><input class="input" placeholder="如：大黄鱼深海网箱养殖技术规程"></div>
+    <div class="field"><label>文档类型</label><select class="select"><option>PDF</option><option>Word(.docx)</option><option>Excel(.xlsx)</option><option>TXT / Markdown</option><option>图片(OCR)</option></select></div>
+  </div>
+  <div class="field mb"><label>选择文件</label>
+    <div style="border:2px dashed #cbd5e1;border-radius:10px;padding:24px;text-align:center;color:#64748b;cursor:pointer;background:#f8fafc">
+      <div style="font-size:30px">📂</div><div class="mt small"><b>点击选择文件，或拖拽到此处</b></div>
+      <div class="small muted">单文件 ≤ 50MB</div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field"><label>分块策略</label><select class="select"><option>自动（按段落+长度）</option><option>按页</option><option>按固定长度 500 字</option></select></div>
+    <div class="field"><label>向量化模型</label><select class="select"><option>bge-large-zh（1024维）</option><option>m3e-base</option><option>text-embedding-3</option></select></div>
+    <div class="field"><label>关联用途</label><select class="select"><option>大模型 RAG 检索</option><option>仅归档</option></select></div>
+  </div>
+  <div class="note blue" style="margin-top:6px"><span>ℹ️</span><div>导入后自动执行：解析 → 切片 → 向量化 → 入库，完成后即可在 AI 问答 / 智能体分析中被检索引用。</div></div>`;
+  openModal('📥 导入资料文档', body, {width:640, saveText:'开始导入', onSave:'afterImport()'});
+}
+function afterImport(){
+  const body=`<div style="padding:14px 4px">
+    <div style="display:flex;align-items:center;gap:10px;color:#0284c7"><span style="font-size:22px">⚙️</span><b>正在解析、切片、向量化…</b></div>
+    <div style="height:6px;background:#f1f5f9;border-radius:4px;margin:12px 0;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,#0ea5e9,#14b8a6)"></div></div>
+    <div class="ok small">✅ 导入完成 · 已生成切片并入向量库，可被 RAG 检索</div></div>`;
+  openModal('导入资料', body, {width:440, foot:false});
+}
+</script>
+</body>
+</html>

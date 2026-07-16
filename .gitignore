@@ -1,0 +1,12 @@
+# 默认忽略根目录所有文件
+/*
+
+# 保留：原型、文档
+!/prototype/
+!*.md
+!.gitignore
+!README.md
+
+# 忽略系统文件
+.DS_Store
+Thumbs.db

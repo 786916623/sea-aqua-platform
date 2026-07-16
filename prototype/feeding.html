@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>投喂管理 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>投喂管理</h1><p>机器投喂数据 · 明细随顶栏全局范围联动 · <span data-scope-label>全部站点</span></p></div>
+        <div><span class="tag blue" data-scope-chip style="display:none"></span> <button class="btn primary" onclick="feedPlan()">⚙️ 投喂计划</button></div>
+      </div>
+
+      <div class="grid kpis">
+        <div class="kpi"><div class="ic">🍽️</div><div class="lbl">今日总投喂量</div><div class="val">58.5 <small>kg</small></div><div class="sub muted">6 站点合计</div></div>
+        <div class="kpi"><div class="ic">📈</div><div class="lbl">平均投喂率</div><div class="val">1.4 <small>% BW</small></div><div class="sub ok">推荐区间 1-2%</div></div>
+        <div class="kpi"><div class="ic">🐟</div><div class="lbl">累计饲料消耗(月)</div><div class="val">2,054 <small>kg</small></div><div class="sub muted">配合饲料</div></div>
+        <div class="kpi"><div class="ic">⚖️</div><div class="lbl">平均饲料系数 FCR</div><div class="val">1.8 <small></small></div><div class="sub ok">优于目标 2.0</div></div>
+      </div>
+
+      <div class="grid cols-2-1 mt">
+        <div class="card">
+          <div class="card-h"><h3>每日投喂量趋势（近 14 天）</h3></div>
+          <div id="feedTrend" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>投喂 vs 水温/DO</h3></div>
+          <div id="feedCorr" class="chart"></div>
+          <div class="small muted mt">辅助判断投喂时机是否合理</div>
+        </div>
+      </div>
+
+      <div class="card mt">
+        <div class="card-h"><h3>投喂明细（今日）</h3></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>站点</th><th>今日投喂量</th><th>投喂率</th><th>频次</th><th>饲料</th><th>粗蛋白</th><th>估算FCR</th><th>摄食响应</th><th>状态</th></tr>
+          <tr data-site="连江渔排"><td>连江渔排</td><td>8.0 kg</td><td>1.0%</td><td>2 次</td><td>配合饲料 4mm</td><td>45%</td><td>1.9</td><td>⚠️ 偏弱</td><td><span class="tag red">建议减量</span></td></tr>
+          <tr data-site="三沙湾养殖点"><td>三沙湾养殖点</td><td>14.0 kg</td><td>1.5%</td><td>2 次</td><td>配合饲料 5mm</td><td>45%</td><td>1.7</td><td>✅ 旺盛</td><td><span class="tag green">正常</span></td></tr>
+          <tr data-site="罗源湾一号养殖点"><td>罗源湾一号</td><td>12.5 kg</td><td>1.4%</td><td>2 次</td><td>配合饲料 5mm</td><td>45%</td><td>1.8</td><td>✅ 正常</td><td><span class="tag green">正常</span></td></tr>
+          <tr data-site="鉴江海区养殖点"><td>鉴江海区</td><td>11.0 kg</td><td>1.4%</td><td>2 次</td><td>配合饲料 5mm</td><td>45%</td><td>1.8</td><td>✅ 正常</td><td><span class="tag green">正常</span></td></tr>
+          <tr data-site="霞浦鱼井澳养殖点"><td>霞浦鱼井澳</td><td>13.0 kg</td><td>1.5%</td><td>2 次</td><td>配合饲料 5mm</td><td>45%</td><td>1.8</td><td>✅ 正常</td><td><span class="tag green">正常</span></td></tr>
+        </table></div>
+      </div>
+
+      <!-- 按单元投喂 -->
+      <div class="card mt">
+        <div class="card-h"><h3>按养殖单元投喂明细（连江渔排）</h3>
+          <span class="small muted">投喂记录到每个 4×4m 单元 · 与声纳计数联动</span></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>单元号</th><th>放养数量</th><th>声纳计数</th><th>均重</th><th>单元生物量</th><th>今日投喂</th><th>投喂率</th><th>摄食响应</th><th>建议</th></tr>
+          <tr><td>A1</td><td>400</td><td>396</td><td>398g</td><td>157.6 kg</td><td>0.8 kg</td><td>0.5%</td><td>⚠️ 弱</td><td><span class="tag red">减量</span></td></tr>
+          <tr><td>A2</td><td>400</td><td>402</td><td>398g</td><td>160.0 kg</td><td>0.8 kg</td><td>0.5%</td><td>⚠️ 弱</td><td><span class="tag red">减量</span></td></tr>
+          <tr><td>A3</td><td>400</td><td>398</td><td>400g</td><td>159.2 kg</td><td>0.7 kg</td><td>0.4%</td><td>—</td><td><span class="tag amber">关注</span></td></tr>
+          <tr><td>B1</td><td>420</td><td>415</td><td>455g</td><td>188.8 kg</td><td>0.9 kg</td><td>0.5%</td><td>—</td><td><span class="tag amber">关注</span></td></tr>
+          <tr><td>B2</td><td>420</td><td>418</td><td>455g</td><td>190.2 kg</td><td>0.9 kg</td><td>0.5%</td><td>—</td><td><span class="tag amber">关注</span></td></tr>
+          <tr><td colspan="9" class="muted center">连江渔排受 DO 偏低影响，全站投喂率已统一下调；其余单元结构相同</td></tr>
+        </table></div>
+        <div class="small muted mt">单元合计投喂 8.0 kg = 站点今日总量；摄食响应由投喂时段声纳识别自动回填</div>
+      </div>
+
+      <div class="card mt">
+        <div class="card-h"><h3>投料机状态</h3></div>
+        <div class="grid cols-3">
+          <div class="row-line" style="padding:12px"><div>🍽️ 三沙湾 1# 投料机</div><span class="tag green">在线 · 料仓 78%</span></div>
+          <div class="row-line" style="padding:12px"><div>🍽️ 罗源湾 1# 投料机</div><span class="tag green">在线 · 料仓 65%</span></div>
+          <div class="row-line" style="padding:12px"><div>🍽️ 连江 1# 投料机</div><span class="tag amber">料仓 18% 需补料</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['数据','投喂管理']);
+function feedPlan(){
+  const body=`<div class="form-row">
+      <div class="field"><label>适用站点</label><select class="select"><option>全部站点</option><option>三沙湾养殖点</option><option>连江渔排</option></select></div>
+      <div class="field"><label>适用养殖单元</label><select class="select"><option>全部单元</option><option>S1–S16</option></select></div>
+      <div class="field"><label>饲料种类</label><select class="select"><option>配合饲料 5mm</option><option>配合饲料 4mm</option><option>鲜杂鱼</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>基础投饲率（%BW）</label><input class="input" value="1.5"></div>
+      <div class="field"><label>每日投喂频次</label><select class="select"><option>2 次</option><option>1 次</option><option>3 次</option></select></div>
+      <div class="field"><label>鱼体重阶段</label><select class="select"><option>中成鱼 150-500g</option><option>幼鱼 10-150g</option><option>亲鱼 >500g</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>投喂时刻 1</label><input class="input" value="07:00"></div>
+      <div class="field"><label>投喂时刻 2</label><input class="input" value="17:00"></div>
+      <div class="field"><label>水温自动修正</label><div class="row-line" style="padding:6px 0;border:none"><span class="switch on"></span><span class="small">按水温分段下调</span></div></div>
+    </div>
+    <div class="note blue" style="margin-top:6px"><span>💡</span><div>开启后系统按「投喂率 × 单元生物量 × 水温修正」自动计算各单元投喂量，并在 DO&lt;4mg/L 或摄食响应弱时自动减量。</div></div>`;
+  openModal('⚙️ 投喂计划', body, {width:640, saveText:'保存计划', note:'保存后每日自动执行'});
+  setTimeout(()=>document.querySelectorAll('.modal .switch').forEach(s=>s.onclick=()=>s.classList.toggle('on')),50);
+}
+const c=id=>echarts.init(document.getElementById(id));
+c('feedTrend').setOption({tooltip:{trigger:'axis'},legend:{data:['三沙湾','罗源湾','连江'],top:0,textStyle:{fontSize:11}},
+  grid:{left:40,right:20,top:30,bottom:25},xAxis:{type:'category',data:Array.from({length:14},(_,i)=>'7/'+(i+2))},
+  yAxis:{type:'value',name:'kg'},series:[
+  {name:'三沙湾',type:'bar',stack:'a',data:[12,13,13,14,14,15,13,14,14,15,14,14,15,14],itemStyle:{color:'#0ea5e9'}},
+  {name:'罗源湾',type:'bar',stack:'a',data:[11,12,12,12,13,13,12,13,12,13,12,13,13,12.5],itemStyle:{color:'#14b8a6'}},
+  {name:'连江',type:'bar',stack:'a',data:[10,11,11,10,9,8,8,9,8,8,9,8,8,8],itemStyle:{color:'#f59e0b'}}]});
+c('feedCorr').setOption({tooltip:{trigger:'axis'},legend:{data:['投喂量','水温'],top:0,textStyle:{fontSize:11}},
+  grid:{left:55,right:55,top:30,bottom:30,containLabel:true},xAxis:{type:'category',data:['6:00','9:00','12:00','15:00','18:00']},
+  yAxis:[{type:'value',name:'kg',nameGap:18},{type:'value',name:'°C',nameGap:18}],
+  series:[{name:'投喂量',type:'bar',data:[3.5,4.0,0,0,4.5],itemStyle:{color:'#0ea5e9'}},
+    {name:'水温',type:'line',yAxisIndex:1,data:[25.2,26.5,28.1,28.5,26.8],itemStyle:{color:'#ef4444'}}]});
+</script>
+</body>
+</html>

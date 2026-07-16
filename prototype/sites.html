@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>养殖站点 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>养殖站点管理</h1><p>6 个海上网箱/渔排 · 卡片随顶栏全局范围联动 · <span data-scope-label>全部站点</span></p></div>
+        <div><span class="tag blue" data-scope-chip style="display:none"></span> <button class="btn" onclick="addSite()">+ 新增站点</button></div>
+      </div>
+
+      <div class="grid cols-3">
+        <!-- 卡片1 -->
+        <div class="card" data-site="连江渔排"><div class="card-h"><h3>🟢 连江渔排</h3><span class="tag amber">告警</span></div>
+          <div class="small muted">福建-福州 · 连江县晓澳镇228国道</div>
+          <table class="mt small">
+            <tr><td class="muted">负责人</td><td>张明 15394525645</td></tr>
+            <tr><td class="muted">经纬度</td><td>119.63, 26.19</td></tr>
+            <tr><td class="muted">设备</td><td>子设备 4 (在线3) · 摄像头 3</td></tr>
+            <tr><td class="muted">养殖品种</td><td>大黄鱼 · 约 5000 尾</td></tr>
+          </table>
+          <div class="mt small"><span class="tag red">pH 6.27</span> <span class="tag red">DO 3.9</span></div>
+        </div>
+        <div class="card" data-site="三沙湾养殖点"><div class="card-h"><h3>🟢 三沙湾养殖点</h3><span class="tag amber">告警</span></div>
+          <div class="small muted">宁德 · 三沙湾</div>
+          <table class="mt small">
+            <tr><td class="muted">经纬度</td><td>120.22, 26.92</td></tr>
+            <tr><td class="muted">设备</td><td>子设备 3 · 摄像头 2</td></tr>
+            <tr><td class="muted">养殖品种</td><td>大黄鱼 · 约 8000 尾</td></tr>
+          </table>
+          <div class="mt small"><span class="tag amber">盐度 31.38</span></div>
+        </div>
+        <div class="card" data-site="罗源湾一号养殖点"><div class="card-h"><h3>🟢 罗源湾一号养殖点</h3><span class="tag green">正常</span></div>
+          <div class="small muted">福州罗源 · 碧里洋屿山</div>
+          <table class="mt small">
+            <tr><td class="muted">经纬度</td><td>119.70, 26.45</td></tr>
+            <tr><td class="muted">设备</td><td>子设备 4 · 摄像头 2</td></tr>
+            <tr><td class="muted">养殖品种</td><td>大黄鱼 · 约 6000 尾</td></tr>
+          </table>
+          <div class="mt small ok">指标正常</div>
+        </div>
+        <div class="card" data-site="鉴江海区养殖点"><div class="card-h"><h3>🟢 鉴江海区养殖点</h3><span class="tag green">正常</span></div>
+          <div class="small muted">福州罗源 · 鉴江镇</div>
+          <table class="mt small"><tr><td class="muted">经纬度</td><td>119.82, 26.45</td></tr><tr><td class="muted">设备</td><td>子设备 3 · 摄像头 2</td></tr></table></div>
+        <div class="card" data-site="霞浦鱼井澳养殖点"><div class="card-h"><h3>🟢 霞浦鱼井澳养殖点</h3><span class="tag green">正常</span></div>
+          <div class="small muted">宁德霞浦 · 沙江</div>
+          <table class="mt small"><tr><td class="muted">经纬度</td><td>120.11, 26.88</td></tr><tr><td class="muted">设备</td><td>子设备 3 · 摄像头 2</td></tr></table></div>
+        <div class="card" data-site="闽江大学实验室"><div class="card-h"><h3>🟢 闽江大学实验室</h3><span class="tag gray">实验室</span></div>
+          <div class="small muted">福州闽江大学旗山校区</div>
+          <table class="mt small"><tr><td class="muted">经纬度</td><td>119.17, 26.07</td></tr><tr><td class="muted">用途</td><td>AI 识别试验 · 声纳试点</td></tr></table></div>
+      </div>
+
+      <!-- 养殖单元 -->
+      <div class="card mt">
+        <div class="card-h"><h3>🟦 连江渔排 - 养殖单元（鱼排 4m×4m / 格）</h3>
+          <div><span class="tag blue">12 个单元</span> <span class="small muted">每单元独立放养 / 声纳监测 / 投喂</span></div></div>
+        <div class="note blue"><span>📐</span><div><b>层级模型：</b>站点 → 养殖单元（4×4m）→ 鱼群/投喂。每单元 16㎡，放养约 400 尾大黄鱼（~25 尾/㎡），声纳按单元计数/测长，投喂按单元记录。</div></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>单元号</th><th>尺寸</th><th>品种/规格</th><th>放养数量</th><th>密度</th><th>放苗日期</th><th>声纳计数</th><th>今日投喂</th><th>声纳覆盖</th><th>状态</th></tr>
+          <tr><td>A1</td><td>4×4m</td><td>大黄鱼 / 20cm</td><td>400 尾</td><td>25 尾/㎡</td><td>05-10</td><td>396 尾</td><td>0.8 kg</td><td><span class="tag green">固定声纳</span></td><td><span class="tag red">DO低</span></td></tr>
+          <tr><td>A2</td><td>4×4m</td><td>大黄鱼 / 20cm</td><td>400 尾</td><td>25 尾/㎡</td><td>05-10</td><td>402 尾</td><td>0.8 kg</td><td><span class="tag green">固定声纳</span></td><td><span class="tag red">DO低</span></td></tr>
+          <tr><td>A3</td><td>4×4m</td><td>大黄鱼 / 20cm</td><td>400 尾</td><td>25 尾/㎡</td><td>05-10</td><td>398 尾</td><td>0.7 kg</td><td><span class="tag blue">轮巡</span></td><td><span class="tag amber">关注</span></td></tr>
+          <tr><td>B1</td><td>4×4m</td><td>大黄鱼 / 22cm</td><td>420 尾</td><td>26 尾/㎡</td><td>04-22</td><td>415 尾</td><td>0.9 kg</td><td><span class="tag blue">轮巡</span></td><td><span class="tag green">正常</span></td></tr>
+          <tr><td>B2</td><td>4×4m</td><td>大黄鱼 / 22cm</td><td>420 尾</td><td>26 尾/㎡</td><td>04-22</td><td>418 尾</td><td>0.9 kg</td><td><span class="tag blue">轮巡</span></td><td><span class="tag green">正常</span></td></tr>
+          <tr><td>…</td><td colspan="9" class="muted center">另有 7 个单元（B3–D3），结构与上同，按单元独立监测与投喂</td></tr>
+        </table></div>
+        <div class="small muted mt">合计：12 单元 · 放养 4,860 尾 · 声纳在网 4,860 尾 · 今日投喂 8.0 kg（与「投喂管理」页一致）</div>
+      </div>
+
+      <!-- 设备清单 -->
+      <div class="card mt">
+        <div class="card-h"><h3>连江渔排 - 设备清单</h3></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>设备名</th><th>SN</th><th>类型</th><th>状态</th><th>最近上报</th></tr>
+          <tr><td>溶解氧传感器</td><td>lj_do_sensor</td><td>网关子设备</td><td><span class="tag green">在线</span></td><td class="muted small">07-15 22:40</td></tr>
+          <tr><td>PH传感器</td><td>lj_ph_sensor</td><td>网关子设备</td><td><span class="tag green">在线</span></td><td class="muted small">07-15 22:39</td></tr>
+          <tr><td>海水盐度传感器</td><td>lj_salinity_sensor</td><td>网关子设备</td><td><span class="tag green">在线</span></td><td class="muted small">07-15 22:39</td></tr>
+          <tr><td>光照传感器</td><td>lj_light_sensor</td><td>网关子设备</td><td><span class="tag gray">离线</span></td><td class="muted small">07-15 22:39</td></tr>
+          <tr><td>连江-水下摄像头</td><td>34020000001320000007</td><td>GB28181 摄像头</td><td><span class="tag green">在线</span></td><td>—</td></tr>
+          <tr><td>连江-摄像头1/2</td><td>…05 / …06</td><td>GB28181 摄像头</td><td><span class="tag green">在线</span></td><td>—</td></tr>
+        </table></div>
+        <div class="small muted mt">⚠️ 本期起水下光学摄像头弃用（浊水参考价值低），鱼群计数/测长改由声纳承担（见"鱼群生物量"）。</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['数据','养殖站点']);
+function addSite(){
+  const body=`<div class="form-row">
+    <div class="field"><label>站点名称 *</label><input class="input" placeholder="如：连江渔排"></div>
+    <div class="field"><label>所属分组</label><select class="select"><option>福建-福州</option><option>宁德霞浦</option><option>福州罗源</option></select></div>
+    <div class="field"><label>养殖品种</label><select class="select"><option>大黄鱼</option></select></div>
+  </div>
+  <div class="field mb"><label>地址</label><input class="input" placeholder="如：福建省福州市连江县晓澳镇228国道"></div>
+  <div class="form-row">
+    <div class="field"><label>经度</label><input class="input" placeholder="119.632377"></div>
+    <div class="field"><label>纬度</label><input class="input" placeholder="26.195033"></div>
+    <div class="field"><label>网箱规格</label><input class="input" value="4m×4m"></div>
+  </div>
+  <div class="form-row">
+    <div class="field"><label>负责人</label><input class="input" placeholder="如：张明"></div>
+    <div class="field"><label>联系电话</label><input class="input" placeholder="如：153xxxx5645"></div>
+    <div class="field"><label>养殖单元数</label><input class="input" value="12" type="number"></div>
+  </div>
+  <div class="note blue" style="margin-top:6px"><span>📐</span><div>创建后可在「养殖单元」中为该站点划分 4×4m 单元，并录入各单元放养数量。</div></div>`;
+  openModal('+ 新增站点', body, {saveText:'创建站点'});
+}
+</script>
+</body>
+</html>

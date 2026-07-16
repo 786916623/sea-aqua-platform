@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>水质监测 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>水质环境监测</h1><p>7 项水质指标实时监测 · 明细随顶栏全局范围联动 · <span data-scope-label>全部站点</span></p></div>
+        <div>
+          <span class="tag blue" data-scope-chip style="display:none"></span>
+          <select class="select" style="width:auto">
+            <option>近 24 小时</option><option>近 7 天</option><option>近 30 天</option>
+          </select>
+          <button class="btn" onclick="exportData('水质数据')">📥 导出</button>
+        </div>
+      </div>
+
+      <div class="note"><span>⚠️</span><div><b>数据质量提示：</b>连江渔排 pH=6.27、溶解氧 3.9mg/L 明显低于同区域其他站点（pH≈8、DO 7~8mg/L），且其光照传感器离线，疑似<b>传感器故障</b>，建议优先现场校准。</div></div>
+
+      <!-- 指标卡 -->
+      <div class="grid kpis">
+        <div class="kpi"><div class="ic">🌡️</div><div class="lbl">平均水温</div><div class="val">25.8 <small>°C</small></div><div class="sub ok">适宜区 18-28</div></div>
+        <div class="kpi"><div class="ic">🫧</div><div class="lbl">平均溶解氧</div><div class="val">7.1 <small>mg/L</small></div><div class="sub warn">连江 3.9 偏低</div></div>
+        <div class="kpi"><div class="ic">🧪</div><div class="lbl">平均 pH</div><div class="val">8.1 <small></small></div><div class="sub ok">适宜区 7.8-8.5</div></div>
+        <div class="kpi"><div class="ic">🧂</div><div class="lbl">平均盐度</div><div class="val">30.3 <small>ppt</small></div><div class="sub ok">适宜区 25-32</div></div>
+      </div>
+
+      <!-- 趋势图 -->
+      <div class="grid cols-2 mt">
+        <div class="card">
+          <div class="card-h"><h3>💧 水质指标趋势（连江渔排）</h3></div>
+          <div id="trend" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🫧 溶解氧昼夜曲线（全站对比）</h3></div>
+          <div id="doDay" class="chart"></div>
+        </div>
+      </div>
+
+      <!-- 明细表 -->
+      <div class="card mt">
+        <div class="card-h"><h3>各站点水质明细（实时）</h3>
+          <div><input class="input" placeholder="搜索站点…" style="width:200px;padding:6px 10px"></div></div>
+        <div class="tbl-wrap">
+        <table>
+          <tr><th>站点</th><th>水温</th><th>pH</th><th>DO饱和度</th><th>DO浓度</th><th>盐度</th><th>电导率</th><th>TDS</th><th>状态</th><th>更新时间</th></tr>
+          <tr data-site="连江渔排"><td>🟢 连江渔排</td><td class="ok">25.8°C</td><td class="abnormal">6.27</td><td class="abnormal">56.8%</td><td class="abnormal">3.9 mg/L</td><td>30.65</td><td>38.8</td><td>19.4</td><td><span class="tag red">异常</span></td><td class="muted small">07-15 22:45</td></tr>
+          <tr data-site="三沙湾养殖点"><td>🟢 三沙湾养殖点</td><td class="ok">25.6°C</td><td class="ok">8.04</td><td>119.0%</td><td class="ok">8.5</td><td>31.38</td><td>40.0</td><td>19.73</td><td><span class="tag green">正常</span></td><td class="muted small">06-18 17:33</td></tr>
+          <tr data-site="罗源湾一号养殖点"><td>🟢 罗源湾一号</td><td class="ok">26.7°C</td><td class="ok">8.11</td><td>102.3%</td><td class="ok">7.81</td><td>29.28</td><td>38.62</td><td>18.6</td><td><span class="tag green">正常</span></td><td class="muted small">06-18 17:33</td></tr>
+          <tr data-site="鉴江海区养殖点"><td>🟢 鉴江海区</td><td class="ok">25.1°C</td><td class="ok">8.14</td><td>94.9%</td><td class="ok">7.15</td><td>31.13</td><td>41.45</td><td>20.62</td><td><span class="tag green">正常</span></td><td class="muted small">06-18 17:33</td></tr>
+          <tr data-site="霞浦鱼井澳养殖点"><td>🟢 霞浦鱼井澳</td><td class="ok">27.0°C</td><td class="ok">8.24</td><td>111.6%</td><td class="ok">8.03</td><td>29.38</td><td>38.8</td><td>19.91</td><td><span class="tag green">正常</span></td><td class="muted small">06-18 17:33</td></tr>
+          <tr data-site="闽江大学实验室"><td>🟢 闽江大学实验室</td><td colspan="9" class="muted center">— 暂无数据 —</td></tr>
+        </table>
+        </div>
+        <div class="small muted mt">单位：水温°C / pH / DO饱和度% / DO浓度mg·L⁻¹ / 盐度ppt / 电导率mS·cm⁻¹ / TDS g·L⁻¹ · 阈值参考《一期知识库-大黄鱼养殖》</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['数据','水质监测']);
+const c=id=>echarts.init(document.getElementById(id));
+c('trend').setOption({tooltip:{trigger:'axis'},legend:{data:['水温','pH','溶解氧','盐度'],top:0,textStyle:{fontSize:11}},
+  grid:{left:55,right:55,top:30,bottom:30,containLabel:true},xAxis:{type:'category',data:['00','03','06','09','12','15','18','21']},
+  yAxis:[{type:'value',name:'°C/pH/mg·L⁻¹',nameGap:18,nameTextStyle:{padding:[0,0,6,0]},position:'left'},{type:'value',name:'ppt',nameGap:18,position:'right'}],
+  series:[{name:'水温',type:'line',data:[25.2,25.0,25.1,25.8,26.3,26.1,25.9,25.8]},
+    {name:'pH',type:'line',data:[6.4,6.35,6.3,6.27,6.25,6.28,6.27,6.27]},
+    {name:'溶解氧',type:'line',data:[3.5,3.3,3.2,3.9,4.3,4.1,4.0,3.9]},
+    {name:'盐度',type:'line',yAxisIndex:1,data:[30.5,30.6,30.7,30.65,30.6,30.62,30.64,30.65]}]});
+c('doDay').setOption({tooltip:{trigger:'axis'},legend:{data:['三沙湾','罗源湾','鉴江','连江(异常)'],top:0,textStyle:{fontSize:11}},
+  grid:{left:40,right:20,top:30,bottom:25},xAxis:{type:'category',data:['00','03','06','09','12','15','18','21']},
+  yAxis:{type:'value',name:'mg/L'},series:[
+    {name:'三沙湾',type:'line',data:[7.8,7.5,7.6,8.2,8.8,8.6,8.5,8.5]},
+    {name:'罗源湾',type:'line',data:[7.1,6.9,7.0,7.5,8.1,7.9,7.8,7.8]},
+    {name:'鉴江',type:'line',data:[6.5,6.3,6.4,7.0,7.6,7.4,7.2,7.15]},
+    {name:'连江(异常)',type:'line',data:[3.5,3.3,3.2,3.9,4.3,4.1,4.0,3.9],itemStyle:{color:'#ef4444'}}]});
+</script>
+</body>
+</html>

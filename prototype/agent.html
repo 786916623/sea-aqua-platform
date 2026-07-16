@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>智能体配置 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>分析智能体配置</h1><p>配置 AI 分析定时任务 · 大模型/知识库/数据范围/触发策略</p></div>
+        <div><button class="btn" onclick="addAgent()">+ 新建智能体</button></div>
+      </div>
+
+      <!-- 智能体列表 -->
+      <div class="card mb">
+        <div class="card-h"><h3>🤖 已配置智能体</h3><span class="small muted">点击「编辑」切换加载配置</span></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>名称</th><th>类型</th><th>触发</th><th>关联知识库</th><th>输出</th><th>结果展示</th><th>状态</th><th>操作</th></tr>
+          <tbody id="agentList"></tbody>
+        </table></div>
+      </div>
+
+      <!-- 配置表单 -->
+      <div class="card">
+        <div class="card-h"><h3 id="formTitle">⚙️ 配置：每日养殖建议</h3><span class="tag green" id="formStatus">已启用</span></div>
+
+        <div class="form-row">
+          <div class="field"><label>智能体名称</label><input class="input" id="f_name" value="每日养殖建议"></div>
+          <div class="field"><label>分析类型</label><select class="select" id="f_type" onchange="toggleCustomType()"><option>投喂+风险建议</option><option>风险评估</option><option>报表分析</option><option>应急</option><option>仅投喂建议</option><option>自定义…</option></select></div>
+          <div class="field"><label>大模型</label><select class="select" id="f_model"><option>GLM-4.6</option><option>通义千问</option><option>DeepSeek-V3</option><option>文心一言</option></select></div>
+          <div class="field"><label>结果展示位置（可多选）</label>
+            <div class="msel" id="f_display">
+              <div class="msel-box" onclick="toggleMsel('f_display')">
+                <span class="msel-tags" id="f_display_tags"></span><span class="msel-arrow">▾</span>
+              </div>
+              <div class="msel-panel" id="f_display_panel">
+                <label><input type="checkbox" value="AI 智能分析"> AI 智能分析</label>
+                <label><input type="checkbox" value="告警中心"> 告警中心</label>
+                <label><input type="checkbox" value="报表中心"> 报表中心</label>
+                <label><input type="checkbox" value="AI 智能问答"> AI 智能问答</label>
+                <label><input type="checkbox" value="副驾推送"> 副驾推送</label>
+                <label><input type="checkbox" value="弹窗"> 弹窗</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row" id="customTypeRow" style="display:none">
+          <div class="field"><label>自定义类型名称</label><input class="input" id="f_type_custom" placeholder="如：赤潮风险评估"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="field"><label>分析范围（站点）</label><select class="select" id="f_scope"><option>全部站点</option><option>仅异常站点</option><option>指定站点…</option></select></div>
+          <div class="field"><label>关联知识库</label><select class="select" id="f_kb"><option>大黄鱼养殖（全部）</option><option>仅水质阈值</option><option>仅投喂经验</option><option>病害与应急</option></select></div>
+          <div class="field"><label>注入数据</label><select class="select" multiple size="1" style="height:38px"><option selected>水质</option><option selected>投喂</option><option selected>气象</option><option selected>声纳计数</option></select></div>
+        </div>
+
+        <div class="field"><label>System Prompt（专家角色）</label>
+          <textarea class="input" id="f_prompt" style="height:90px;font-family:inherit"></textarea>
+        </div>
+
+        <hr>
+        <div class="card-h"><h3>⏰ 触发策略</h3></div>
+        <div class="row-line"><div>定时触发</div>
+          <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end">
+            <div id="time_cfg" style="display:none;align-items:center;gap:8px">
+              <select class="select" id="f_freq" style="width:auto"><option>每日</option><option>每周</option><option>每月</option><option>每小时</option><option>自定义cron</option></select>
+              <input class="input" id="f_times" placeholder="如 06:00, 18:00" style="width:180px;padding:7px 10px">
+              <span class="small muted">支持多个时刻 / cron 表达式</span>
+            </div>
+            <span class="small muted" id="sw_time_t">未启用</span>
+            <span class="switch" id="sw_time"></span>
+          </div>
+        </div>
+        <div class="row-line"><div>异常触发</div><div style="display:flex;align-items:center;gap:12px"><span class="switch" id="sw_alert"></span><span class="small" id="sw_alert_t">—</span></div></div>
+        <div class="row-line"><div>输出形式</div><div><select class="select" id="f_output" style="width:auto"><option>结构化建议卡（推荐）</option><option>纯文本</option><option>JSON</option></select></div></div>
+        <div class="row-line"><div>推送渠道</div><div class="small">App 推送 · 站点告警栏 · 养殖员微信群</div></div>
+
+        <hr>
+        <div class="card-h"><h3>🧪 试运行</h3></div>
+        <div class="note blue"><span>▶️</span><div>选择站点试运行一次，查看大模型基于当前数据的输出效果。</div></div>
+        <div class="form-row">
+          <div class="field"><label>试运行站点</label><select class="select"><option>连江渔排（异常数据）</option><option>三沙湾养殖点</option></select></div>
+          <div class="field" style="display:flex;align-items:flex-end"><button class="btn primary" onclick="trialRun()">▶ 立即试运行</button></div>
+        </div>
+
+        <div class="right mt"><button class="btn">取消</button> <button class="btn primary">保存配置</button></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['AI 智能','智能体配置']);
+document.querySelectorAll('.switch').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+
+/* 智能体数据 + 编辑切换 */
+const AGENTS = [
+  {name:'每日养殖建议', type:'投喂+风险建议', model:'GLM-4.6', scope:'全部站点', kb:'大黄鱼养殖（全部）',
+   timeOn:true, freq:'每日', times:'06:00, 18:00', alertOn:true, alertText:'水质/气象超阈值时即时分析',
+   output:'结构化建议卡（推荐）', displays:['AI 智能分析'], enabled:true, listTrig:'每日 06:00 / 18:00', listKb:'大黄鱼养殖', listOut:'建议卡',
+   prompt:'你是一位资深大黄鱼网箱养殖专家。请根据提供的站点实时数据（水质/气象/投喂/声纳计数）与知识库阈值，给出可执行的投喂建议、水质与增氧建议、风险提示。要求：①引用具体数值与阈值；②若数据疑似传感器异常须明确指出；③输出结构化（投喂/增氧/排查/关注）。'},
+  {name:'低氧实时预警分析', type:'风险评估', model:'GLM-4.6', scope:'全部站点', kb:'仅水质阈值',
+   timeOn:false, freq:'每日', times:'', alertOn:true, alertText:'任一站点 DO<4mg/L 时即时触发',
+   output:'结构化建议卡（推荐）', displays:['告警中心','副驾推送'], enabled:true, listTrig:'DO<4 即时', listKb:'水质阈值', listOut:'预警+处置',
+   prompt:'你是一位水产养殖溶氧风险专家。当任一站点溶解氧低于阈值时，结合水温/天气/潮汐与历史 DO 曲线，判断低氧成因与泛塘风险，输出：风险等级、增氧措施、投喂调整、巡检建议。务必区分"传感器故障"与"真实低氧"。'},
+  {name:'周报月报生成', type:'报表分析', model:'DeepSeek-V3', scope:'全部站点', kb:'大黄鱼养殖（全部）',
+   timeOn:true, freq:'每周', times:'周一 09:00', alertOn:false, alertText:'—',
+   output:'纯文本', displays:['报表中心'], enabled:true, listTrig:'周一 09:00', listKb:'全部', listOut:'报表文字',
+   prompt:'你是一位养殖数据分析师。根据周/月汇总数据（水质/投喂/生物量/告警），生成结构化报表文字分析，包括：总体表现、重点问题、对比变化、下周/下月关注事项。语言简练、数据具体。'},
+  {name:'台风应急建议', type:'应急', model:'GLM-4.6', scope:'仅异常站点', kb:'病害与应急',
+   timeOn:false, freq:'自定义cron', times:'', alertOn:true, alertText:'气象发布台风/大浪预警时触发',
+   output:'结构化建议卡（推荐）', displays:['告警中心','弹窗'], enabled:false, listTrig:'气象预警触发', listKb:'病害与应急', listOut:'处置方案',
+   prompt:'你是一位海上养殖防灾专家。当气象发布台风/大浪/风暴潮预警时，结合站点位置、潮汐、生物量，输出分级应急方案：加固、降低水位、提前起捕、人员撤离等，并给出时间窗口。'},
+];
+let activeAgent = 0;
+
+function renderList(){
+  document.getElementById('agentList').innerHTML = AGENTS.map((a,i)=>`
+    <tr style="cursor:pointer;${i===activeAgent?'background:#eff6ff':''}" onclick="editAgent(${i})">
+      <td>${i===activeAgent?'<b>›</b> ':''}${a.name}</td>
+      <td>${a.type}</td><td>${a.listTrig}</td><td>${a.listKb}</td><td>${a.listOut}</td><td>${a.displays.map(d=>'<span class="tag blue" style="margin-right:3px">'+d+'</span>').join('')}</td>
+      <td><span class="tag ${a.enabled?'green':'gray'}">${a.enabled?'启用':'停用'}</span></td>
+      <td><span class="more" onclick="event.stopPropagation();editAgent(${i})">编辑</span></td>
+    </tr>`).join('');
+}
+
+function editAgent(i){
+  activeAgent = i;
+  const a = AGENTS[i];
+  document.getElementById('formTitle').textContent = '⚙️ 配置：' + a.name;
+  const st = document.getElementById('formStatus');
+  st.textContent = a.enabled ? '已启用' : '已停用';
+  st.className = 'tag ' + (a.enabled ? 'green' : 'gray');
+  document.getElementById('f_name').value = a.name;
+  document.getElementById('f_type').value = a.type;
+  document.getElementById('f_model').value = a.model;
+  document.getElementById('f_scope').value = a.scope;
+  document.getElementById('f_kb').value = a.kb;
+  document.getElementById('f_prompt').value = a.prompt;
+  document.getElementById('f_output').value = a.output;
+  // 结果展示位置多选回填
+  document.querySelectorAll('#f_display_panel input').forEach(cb=>{ cb.checked = a.displays.includes(cb.value); });
+  syncMsel('f_display');
+  document.getElementById('f_freq').value = a.freq;
+  document.getElementById('f_times').value = a.times;
+  if(a.name==='每日养殖建议') persistSchedule();   // 同步到 AI 智能分析的“场次”
+  document.getElementById('sw_time').classList.toggle('on', a.timeOn);
+  syncTimeCfg();
+  document.getElementById('sw_alert').classList.toggle('on', a.alertOn);
+  document.getElementById('sw_alert_t').textContent = a.alertOn ? a.alertText : '未启用';
+  renderList();
+  document.querySelector('.main .content').scrollIntoView({behavior:'smooth',block:'start'});
+}
+/* 定时开关 → 显隐可配置项 */
+function syncTimeCfg(){
+  const on = document.getElementById('sw_time').classList.contains('on');
+  document.getElementById('time_cfg').style.display = on ? 'flex' : 'none';
+  document.getElementById('sw_time_t').textContent = on ? '' : '未启用';
+}
+/* 分析类型 = 自定义 → 显隐自定义名称输入 */
+function toggleCustomType(){
+  const custom = document.getElementById('f_type').value === '自定义…';
+  document.getElementById('customTypeRow').style.display = custom ? 'flex' : 'none';
+}
+/* “每日养殖建议”智能体的定时时刻 → 同步到 AI 智能分析的“场次”选项（localStorage 共享） */
+function persistSchedule(){
+  if(!AGENTS[activeAgent] || AGENTS[activeAgent].name!=='每日养殖建议') return;
+  const raw=document.getElementById('f_times').value||'';
+  const times=raw.split(/[,，\s]+/).map(s=>s.trim()).filter(Boolean);
+  localStorage.setItem('advSchedule', JSON.stringify(times.length?times:['06:00','18:00']));
+}
+document.getElementById('f_times').addEventListener('input', persistSchedule);
+/* 多选下拉框 */
+function toggleMsel(id){
+  const p=document.getElementById(id+'_panel');
+  document.querySelectorAll('.msel-panel.open').forEach(x=>{ if(x!==p) x.classList.remove('open'); });
+  p.classList.toggle('open');
+}
+function syncMsel(id){
+  const sel=[...document.querySelectorAll('#'+id+'_panel input')].filter(c=>c.checked).map(c=>c.value);
+  const tags=document.getElementById(id+'_tags');
+  tags.innerHTML = sel.length ? sel.map(s=>'<span class="tag blue">'+s+'</span>').join('') : '<span class="ph">选择…</span>';
+}
+document.querySelectorAll('.msel-panel input').forEach(c=>c.addEventListener('change',()=>syncMsel(c.closest('.msel').id)));
+document.addEventListener('click',e=>{ if(!e.target.closest('.msel')) document.querySelectorAll('.msel-panel.open').forEach(p=>p.classList.remove('open')); });
+document.getElementById('sw_time').addEventListener('click', syncTimeCfg);
+renderList();
+editAgent(0);
+function addAgent(){
+  const body=`<div class="form-row">
+    <div class="field"><label>智能体名称 *</label><input class="input" placeholder="如：低氧实时预警分析"></div>
+    <div class="field"><label>分析类型</label><select class="select"><option>投喂+风险建议</option><option>风险评估</option><option>报表分析</option><option>应急</option><option>仅投喂建议</option><option>自定义…</option></select></div>
+    <div class="field"><label>大模型</label><select class="select"><option>GLM-4.6</option><option>通义千问</option><option>DeepSeek-V3</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="field"><label>关联知识库</label><select class="select"><option>大黄鱼养殖（全部）</option><option>仅水质阈值</option><option>仅投喂经验</option></select></div>
+    <div class="field"><label>分析范围</label><select class="select"><option>全部站点</option><option>仅异常站点</option></select></div>
+    <div class="field"><label>结果展示位置（可多选）</label>
+      <div class="msel" id="m_display">
+        <div class="msel-box" onclick="toggleMsel('m_display')">
+          <span class="msel-tags" id="m_display_tags"><span class="tag blue">AI 智能分析</span></span><span class="msel-arrow">▾</span>
+        </div>
+        <div class="msel-panel" id="m_display_panel">
+          <label><input type="checkbox" value="AI 智能分析" checked onchange="syncMsel('m_display')"> AI 智能分析</label>
+          <label><input type="checkbox" value="告警中心" onchange="syncMsel('m_display')"> 告警中心</label>
+          <label><input type="checkbox" value="报表中心" onchange="syncMsel('m_display')"> 报表中心</label>
+          <label><input type="checkbox" value="AI 智能问答" onchange="syncMsel('m_display')"> AI 智能问答</label>
+          <label><input type="checkbox" value="副驾推送" onchange="syncMsel('m_display')"> 副驾推送</label>
+          <label><input type="checkbox" value="弹窗" onchange="syncMsel('m_display')"> 弹窗</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="field"><label>触发方式</label><select class="select"><option>定时</option><option>异常触发</option><option>定时+异常</option></select></div>
+  </div>
+  <div class="field"><label>System Prompt</label><textarea class="input" style="height:80px" placeholder="你是一位资深大黄鱼养殖专家…"></textarea></div>`;
+  openModal('+ 新建智能体', body, {width:640, saveText:'创建并启用'});
+}
+function trialRun(){
+  const body=`<div style="padding:10px 4px">
+    <div style="display:flex;align-items:center;gap:10px;color:#0284c7"><span style="font-size:20px">▶️</span><b>试运行：连江渔排（异常数据）</b></div>
+    <div style="height:6px;background:#f1f5f9;border-radius:4px;margin:12px 0;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,#0ea5e9,#14b8a6)"></div></div>
+    <div class="small muted">大模型输出（结构化建议卡）：</div>
+    <div class="bubble" style="background:#f8fafc;border-radius:10px;padding:12px;margin-top:6px;font-size:13px;line-height:1.7">
+      ⚠️ <b>连江渔排 DO 3.9/pH 6.27</b>，与邻站背离，疑似传感器故障。<br>
+      <b>投喂</b>：暂停；<b>增氧</b>：夜间开启；<b>排查</b>：校准 pH/DO 传感器。
+    </div>
+    <div class="ok small mt">✅ 试运行成功 · 可保存配置后启用</div>
+  </div>`;
+  openModal('试运行结果', body, {width:480, saveText:'我已了解'});
+}
+</script>
+</body>
+</html>

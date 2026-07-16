@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>原型导航 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body{background:linear-gradient(160deg,#0b2238 0%,#0f2d4a 60%,#163e63 100%);min-height:100vh;color:#e2e8f0}
+  .nav-wrap{max-width:1100px;margin:0 auto;padding:46px 24px}
+  .nav-head{text-align:center;margin-bottom:36px}
+  .nav-head .logo{font-size:50px}
+  .nav-head h1{font-size:28px;margin-top:10px;color:#fff}
+  .nav-head p{color:#94a3b8;margin-top:6px}
+  .nav-group-h{display:flex;align-items:center;gap:10px;margin:30px 0 16px;color:#7dd3fc;font-size:14px;font-weight:600;letter-spacing:1px}
+  .nav-group-h::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+  .nav-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .nav-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px 18px;cursor:pointer;transition:.2s;display:block;color:#e2e8f0}
+  .nav-card:hover{background:rgba(14,165,233,.18);border-color:#0ea5e9;transform:translateY(-3px)}
+  .nav-card .ic{font-size:30px}
+  .nav-card .t{font-weight:600;margin-top:10px;color:#fff;font-size:14.5px}
+  .nav-card .d{font-size:12px;color:#94a3b8;margin-top:4px;line-height:1.5}
+  .footer{text-align:center;color:#64748b;font-size:12px;margin-top:40px}
+  @media(max-width:900px){.nav-cards{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="nav-wrap">
+  <div class="nav-head">
+    <div class="logo">🐠</div>
+    <h1>智慧海洋养殖管控平台 · 原型导航</h1>
+    <p>v2 原型 · 福建海域网箱养殖 · 点击卡片进入对应页面（侧边栏可随时切换）</p>
+  </div>
+
+  <div class="nav-group-h">🌊 总览</div>
+  <div class="nav-cards">
+    <a class="nav-card" href="index.html"><div class="ic">🌊</div><div class="t">总览驾驶舱</div><div class="d">KPI · 站点分布 · 趋势 · 告警</div></a>
+  </div>
+
+  <div class="nav-group-h">📊 数据展示（明细 / 统计 / 指标）</div>
+  <div class="nav-cards">
+    <a class="nav-card" href="water-quality.html"><div class="ic">💧</div><div class="t">水质监测</div><div class="d">7项水质指标 · 趋势 · 明细</div></a>
+    <a class="nav-card" href="sites.html"><div class="ic">📍</div><div class="t">养殖站点</div><div class="d">7站点 · 设备清单</div></a>
+    <a class="nav-card" href="feeding.html"><div class="ic">🍽️</div><div class="t">投喂管理</div><div class="d">投喂量 · FCR · 投料机</div></a>
+    <a class="nav-card" href="biomass.html"><div class="ic">🐟</div><div class="t">鱼群生物量</div><div class="d">声纳 · 计数 · 体长 · 网衣</div></a>
+    <a class="nav-card" href="weather.html"><div class="ic">🌤️</div><div class="t">气象海洋</div><div class="d">天气 · 潮汐 · 预警台风</div></a>
+    <a class="nav-card" href="alerts.html"><div class="ic">⚠️</div><div class="t">告警中心</div><div class="d">分级告警 · 类型分布</div></a>
+    <a class="nav-card" href="reports.html"><div class="ic">📑</div><div class="t">报表中心</div><div class="d">日/周/月报 · AI分析</div></a>
+  </div>
+
+  <div class="nav-group-h">🤖 AI 智能</div>
+  <div class="nav-cards">
+    <a class="nav-card" href="ai-advice.html"><div class="ic">🤖</div><div class="t">AI 智能分析</div><div class="d">站点联动 · 定时任务分析结果</div></a>
+    <a class="nav-card" href="ai-chat.html"><div class="ic">💬</div><div class="t">AI 智能问答</div><div class="d">多会话 · 对话式养殖咨询</div></a>
+    <a class="nav-card" href="agent.html"><div class="ic">⚙️</div><div class="t">智能体配置</div><div class="d">模型 · 知识库 · 触发策略</div></a>
+    <a class="nav-card" href="knowledge.html"><div class="ic">📚</div><div class="t">知识库管理</div><div class="d">结构化 · 资料文档 · RAG</div></a>
+  </div>
+
+  <div class="footer">智慧海洋养殖管控平台原型 · 2026-07 · 共 12 个页面 + 本导航页</div>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

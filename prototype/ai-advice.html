@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 智能分析 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content" id="root">
+
+      <div class="page-head">
+        <div>
+          <h1>🤖 AI 智能分析</h1>
+          <p>定时任务分析结果 · 内容随顶栏「全局范围」下拉框联动 · 数据 → 经验 → 分析 → 预测 → 建议</p>
+        </div>
+        <div>
+          <span class="tag blue" data-scope-chip>🔍 已筛选：全部站点</span>
+          <input type="date" class="select" style="width:auto" id="advDate" value="2026-07-15" title="选择日期">
+          <select class="select" style="width:auto" id="advBatch" title="场次（来自“每日养殖建议”智能体定时触发）"></select>
+          <button class="btn primary" onclick="reanalyze()">▶ 立即重新分析</button>
+        </div>
+      </div>
+
+      <!-- 范围条 -->
+      <div class="note blue" id="scopeBar"><span>📍</span><div id="scopeText"></div></div>
+
+      <!-- KPI（动态） -->
+      <div class="grid kpis" id="kpis"></div>
+
+      <!-- 内容容器 -->
+      <div id="advBody"></div>
+
+      <div class="small muted center" id="advFoot" style="padding:8px 0 0"></div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['AI 智能','AI 智能分析']);
+const $ = id => document.getElementById(id);
+
+/* ===== 各站点分析数据（数据驱动，便于站点联动） ===== */
+const TONE = {
+  red:{c:'#ef4444',i:'🔴',l:'高风险',x:'red'},
+  amber:{c:'#f59e0b',i:'🟠',l:'关注',x:'amber'},
+  green:{c:'#22c55e',i:'🟢',l:'正常/机会',x:'green'},
+  gray:{c:'#94a3b8',i:'⚪',l:'试验',x:'gray'},
+};
+function hl(t,tone){ const cls={red:'hl',amber:'hl-a',green:'hl-g'}[tone]||'hl'; return `<span class="${cls}">${t}</span>`; }
+
+const SITES = {
+  '连江渔排':{
+    status:'red', tag:'异常', region:'福建-福州·连江县',
+    kpi:[['水温','25.8°C','green'],['溶解氧','3.9 mg/L','red'],['盐度','30.65 ppt','green'],['今日投喂','暂停','red']],
+    banner:{tone:'red',title:'需立即处置 · 低氧泛塘风险',a:['暂停投喂','立即增氧','校准 pH/DO 传感器']},
+    cards:[
+      {tone:'red',title:'低氧泛塘风险',rows:[
+        ['📊 数据','DO '+hl('3.9mg/L','red')+' + 水温25.8℃ + 明日高温34℃ + 农历大潮 + 无风夜'],
+        ['🧠 经验','DO<3 且叠加高温、夜间呼吸耗氧，易发泛塘（知识库规则）'],
+        ['🔍 分析','当前 DO 已接近危险线，叠加夜间耗氧与高温，水体供氧能力持续下降'],
+        ['🔮 预测','今夜至明晨溶氧可能 '+hl('跌破 2mg/L','red')+'，泛塘死鱼概率高'],
+        ['✅ 建议','立即开启增氧、暂停投喂、凌晨3–5点加密巡检（先校准传感器确认）']]},
+      {tone:'amber',title:'网衣破损逃鱼风险',rows:[
+        ['📊 数据','声纳检出西侧网衣 '+hl('轻微变形','amber')+' + 大潮期流压 + 网衣服役14个月'],
+        ['🧠 经验','大潮急流叠加网衣变形，易在受力点破洞逃鱼'],
+        ['🔍 分析','变形处为受力集中点，大潮急流会进一步放大网衣应力'],
+        ['🔮 预测','本次大潮(07-15~17)网衣破损概率 '+hl('偏高','amber')],
+        ['✅ 建议','潜水复查西侧、加固、声纳巡检加密至2次/日']]},
+      {tone:'amber',title:'病害早期风险',rows:[
+        ['📊 数据','DO/pH异常(待校准) + 声纳摄食响应偏弱 + 死鱼率0.05%/日'],
+        ['🧠 经验','水质应激叠加摄食下降，常为病害前兆'],
+        ['🔍 分析','慢性应激已影响摄食行为，鱼体处于亚健康累积阶段'],
+        ['🔮 预测','若水质属实偏低，'+hl('3–5天内','amber')+'病害风险上升'],
+        ['✅ 建议','先校准传感器、停料观察1日、巡检鱼体表与鳃部，必要时预防处理']]},
+    ],
+    feed:['25.8°C','3.9','暂停','—','—','DO偏低暂停'],
+  },
+  '三沙湾养殖点':{
+    status:'amber', tag:'关注', region:'宁德·三沙湾',
+    kpi:[['水温','25.6°C','green'],['溶解氧','8.5 mg/L','green'],['盐度','31.38 ppt','amber'],['今日投喂','14.0 kg','green']],
+    banner:{tone:'amber',title:'需关注 · 高温应激 + 盐度偏高',a:['下调投喂率','避开正午投喂','关注盐度上升']},
+    cards:[
+      {tone:'amber',title:'高温应激减食',rows:[
+        ['📊 数据','历史水温 '+hl('31.2℃','amber')+' + 未来3天34℃ + 近期摄食响应偏弱'],
+        ['🧠 经验','大黄鱼水温>30℃摄食下降、>32℃危险，FCR升高'],
+        ['🔍 分析','持续高温使鱼体代谢升、食欲降，摄食响应减弱已印证应激'],
+        ['🔮 预测','未来3天摄食量或 '+hl('下降15–20%','amber')+'，饲料系数上升'],
+        ['✅ 建议','投喂率下调至1.0%、避开10–15点正午、傍晚集中投喂']]},
+      {tone:'green',title:'产量与上市预测',rows:[
+        ['📊 数据','声纳体长均值22.6cm（均重503g）+ 投喂1.5%BW + 水温适宜'],
+        ['🧠 经验','大黄鱼上市规格400–500g，W=0.024L²·⁸⁴⁸'],
+        ['🔍 分析','体长分布集中在上市规格附近，生长速率与摄喂正常'],
+        ['🔮 预测',hl('2–3周内','green')+'达规格，本批可上市约 3.9 吨'],
+        ['✅ 建议','按体长分布分批起捕、分级销售，避免集中上市压价']]},
+    ],
+    feed:['25.6°C','8.5','14.0 kg','1.5%','07:00 / 17:00','盐度偏高关注'],
+  },
+  '鉴江海区养殖点':{
+    status:'amber', tag:'关注', region:'福州罗源·鉴江镇',
+    kpi:[['水温','25.1°C','green'],['溶解氧','7.15 mg/L','green'],['盐度','31.13 ppt','amber'],['今日投喂','11.0 kg','green']],
+    cards:[
+      {tone:'amber',title:'盐度持续升高',rows:[
+        ['📊 数据','盐度31.13 + 三沙湾31.38 + 高温蒸发 + 未来少雨'],
+        ['🧠 经验','盐度>35ppt渗透压应激，>38危险'],
+        ['🔍 分析','高温少雨使蒸发量大于补给，盐度呈上升趋势'],
+        ['🔮 预测','未来一周盐度或 '+hl('突破33–34ppt','amber')+'，逼近警戒线'],
+        ['✅ 建议','持续监测，必要时适当换水/调整网箱水位']]},
+    ],
+    feed:['25.1°C','7.15','11.0 kg','1.4%','07:00 / 17:00','盐度偏高关注'],
+  },
+  '罗源湾一号养殖点':{
+    status:'green', tag:'正常', region:'福州罗源·碧里洋屿山',
+    kpi:[['水温','26.7°C','green'],['溶解氧','7.81 mg/L','green'],['盐度','29.28 ppt','green'],['今日投喂','12.5 kg','green']],
+    cards:[
+      {tone:'green',title:'生长态势良好',rows:[
+        ['📊 数据','水温26.7℃(最适区) + DO 7.81 + 投喂1.4%BW + 摄食响应正常'],
+        ['🧠 经验','最适水温+充足溶氧+正常摄食 → 生长效率最佳'],
+        ['🔍 分析','各项指标处于最优组合，鱼体代谢与转化效率高'],
+        ['🔮 预测','维持当前管理，本批 '+hl('按期达规格','green')+'，FCR有望保持1.7–1.8'],
+        ['✅ 建议','维持当前投喂计划，保持早晚两次投喂节奏']]},
+    ],
+    feed:['26.7°C','7.81','12.5 kg','1.4%','07:00 / 17:00','正常'],
+  },
+  '霞浦鱼井澳养殖点':{
+    status:'amber', tag:'关注', region:'宁德霞浦·沙江',
+    kpi:[['水温','27.0°C','amber'],['溶解氧','8.03 mg/L','green'],['盐度','29.38 ppt','green'],['今日投喂','13.0 kg','green']],
+    cards:[
+      {tone:'amber',title:'高温期溶氧历史偏低',rows:[
+        ['📊 数据','水温27.0℃(偏高) + 历史DO多次降至4.7 + 明日34℃'],
+        ['🧠 经验','高温期夜间溶氧易走低，曾触发DO偏低告警'],
+        ['🔍 分析','高温降饱和度叠加夜间呼吸耗氧，该站历史规律偏低'],
+        ['🔮 预测','夜间至凌晨溶氧 '+hl('可能跌破5mg/L','amber')],
+        ['✅ 建议','夜间开启增氧、傍晚投喂、加密夜间溶氧监测']]},
+    ],
+    feed:['27.0°C','8.03','13.0 kg','1.5%','06:30 / 17:30','避高温'],
+  },
+  '闽江大学实验室':{
+    status:'gray', tag:'试验点', region:'福州闽江大学旗山校区',
+    kpi:[['水温','—','gray'],['溶解氧','—','gray'],['盐度','—','gray'],['今日投喂','—','gray']],
+    cards:[
+      {tone:'gray',title:'AI/声纳试验点',rows:[
+        ['📊 数据','实验室无水质传感器，用于 AI 识别与声纳算法试验'],
+        ['🧠 经验','不计入生产分析，仅作算法验证'],
+        ['🔍 分析','试验数据用于模型迭代，不形成养殖结论'],
+        ['🔮 预测','—'],
+        ['✅ 建议','保持试验运行，识别结果回流模型训练']]},
+    ],
+    feed:['—','—','—','—','—','试验点'],
+  },
+};
+const ORDER = ['连江渔排','三沙湾养殖点','罗源湾一号养殖点','鉴江海区养殖点','霞浦鱼井澳养殖点','闽江大学实验室'];
+
+/* 各站点未来 24h 专属提示（按各站实际水温/水质分别给出） */
+const TIP24 = {
+  '连江渔排':{w:'晴转多云',hi:'33',lo:'27',tips:[
+    '当前 DO <b>3.9mg/L</b> 偏低，夜间至凌晨可能续降，凌晨加密巡检、夜间增氧',
+    '农历大潮 + 西侧网衣变形，重点排查破洞逃鱼',
+    '明日高温，暂停白天投喂，并校准 pH/DO 传感器确认数据真实性']},
+  '三沙湾养殖点':{w:'多云',hi:'34',lo:'26',tips:[
+    '历史水温曾达 <b>31.2℃</b>，高温期傍晚投喂、避开 10–15 点正午',
+    '盐度 31.38 略偏高，持续关注上升',
+    '摄食旺盛，维持 1.5%BW 投喂']},
+  '罗源湾一号养殖点':{w:'多云',hi:'34',lo:'26',tips:[
+    '水温 <b>26.7℃</b> 接近偏高区间，傍晚投喂为宜',
+    'DO 7.81mg/L 充足，维持早晚两次投喂节奏',
+    '各项指标正常，按计划管理']},
+  '鉴江海区养殖点':{w:'多云',hi:'33',lo:'26',tips:[
+    '盐度 <b>31.13</b> 略偏高，持续监测，必要时换水',
+    '水温 25.1℃ 适宜，维持当前投喂',
+    '大潮期加强网衣巡检']},
+  '霞浦鱼井澳养殖点':{w:'多云',hi:'34',lo:'26',tips:[
+    '水温 <b>27.0℃</b> 全站最高，高温期夜间溶氧易走低',
+    '夜间开启增氧、傍晚集中投喂',
+    '历史 DO 偏低，加密夜间溶氧监测']},
+  '闽江大学实验室':{w:'—',hi:'—',lo:'—',tips:[
+    '试验点，不参与生产提示',
+    '保持 AI/声纳试验运行']},
+};
+
+/* ===== 早场（06:00）数据：基于夜间至黎明数据，侧重夜间溶氧/泛塘 + 今日投喂（与晚场 SITES 互补；日期共用） ===== */
+const EARLY = {
+  '连江渔排':{
+    status:'red', tag:'异常', region:'福建-福州·连江县',
+    kpi:[['水温','25.5°C','green'],['溶解氧','3.2 mg/L','red'],['盐度','30.65 ppt','green'],['今日投喂','暂停','red']],
+    banner:{tone:'red',title:'需立即处置 · 夜间溶氧续降，泛塘高危',a:['立即增氧','暂停投喂','校准 pH/DO 传感器']},
+    cards:[
+      {tone:'red',title:'夜间泛塘风险',rows:[
+        ['📊 数据','DO '+hl('3.2mg/L','red')+'（夜间最低）+ 无风夜 + 农历大潮 + 水温25.5℃'],
+        ['🧠 经验','黎明前为溶氧日最低点，DO<3 极易泛塘'],
+        ['🔍 分析','夜间无光合产氧、呼吸耗氧累积，DO 跌至日最低且仍在下行'],
+        ['🔮 预测','凌晨 5 点前后溶氧可能 '+hl('跌破 2mg/L','red')],
+        ['✅ 建议','立即开启增氧、暂停投喂、凌晨加密巡检，先校准传感器确认']]},
+      {tone:'amber',title:'病害早期风险',rows:[
+        ['📊 数据','DO 持续偏低 + 摄食响应偏弱 + 死鱼率0.05%/日'],
+        ['🧠 经验','慢性低氧应激是病害前兆'],
+        ['🔍 分析','低氧已持续累积并影响摄食，鱼体免疫承压'],
+        ['🔮 预测','若低氧持续，'+hl('3–5天内','amber')+'病害风险上升'],
+        ['✅ 建议','先校准传感器、停料观察、巡检鱼体表与鳃部']]},
+    ],
+    feed:['25.5°C','3.2','暂停','—','—','DO偏低暂停'],
+  },
+  '三沙湾养殖点':{
+    status:'amber', tag:'关注', region:'宁德·三沙湾',
+    kpi:[['水温','25.4°C','green'],['溶解氧','6.8 mg/L','amber'],['盐度','31.38 ppt','amber'],['今日投喂','14.0 kg','green']],
+    banner:{tone:'amber',title:'需关注 · 夜间溶氧走低',a:['夜间增氧','傍晚已投喂','关注 DO 回升']},
+    cards:[
+      {tone:'amber',title:'夜间溶氧走低',rows:[
+        ['📊 数据','DO '+hl('6.8mg/L','amber')+'（黎明偏低）+ 历史曾降至4.7 + 大潮'],
+        ['🧠 经验','夜间藻类/鱼类呼吸耗氧，黎明最低'],
+        ['🔍 分析','黎明 DO 已接近偏低区间，该站历史存在夜间走低规律'],
+        ['🔮 预测','白天光合回升，但今夜可能 '+hl('再跌破5mg/L','amber')],
+        ['✅ 建议','夜间保持增氧、白天正常投喂14kg、加密夜间监测']]},
+    ],
+    feed:['25.4°C','6.8','14.0 kg','1.5%','07:00 / 17:00','夜间DO关注'],
+  },
+  '罗源湾一号养殖点':{
+    status:'green', tag:'正常', region:'福州罗源·碧里洋屿山',
+    kpi:[['水温','26.5°C','green'],['溶解氧','7.2 mg/L','green'],['盐度','29.28 ppt','green'],['今日投喂','12.5 kg','green']],
+    cards:[
+      {tone:'green',title:'黎明溶氧仍充足',rows:[
+        ['📊 数据','黎明 DO 7.2mg/L（仍处安全区）+ 水温26.5℃ + 摄食正常'],
+        ['🧠 经验','DO>6 且摄食正常，无需干预'],
+        ['🔍 分析','日最低溶氧仍高于安全线，鱼群状态稳定'],
+        ['🔮 预测','今日按计划投喂，'+hl('维持良好','green')],
+        ['✅ 建议','维持早晚两次投喂12.5kg、节奏不变']]},
+    ],
+    feed:['26.5°C','7.2','12.5 kg','1.4%','07:00 / 17:00','正常'],
+  },
+  '鉴江海区养殖点':{
+    status:'amber', tag:'关注', region:'福州罗源·鉴江镇',
+    kpi:[['水温','25.0°C','green'],['溶解氧','6.9 mg/L','amber'],['盐度','31.13 ppt','amber'],['今日投喂','11.0 kg','green']],
+    cards:[
+      {tone:'amber',title:'盐度持续升高',rows:[
+        ['📊 数据','盐度31.13 + 高温蒸发 + 未来少雨'],
+        ['🧠 经验','盐度>35ppt渗透压应激'],
+        ['🔍 分析','蒸发大于补给，盐度处于缓慢上升通道'],
+        ['🔮 预测','未来一周盐度或 '+hl('突破33–34ppt','amber')],
+        ['✅ 建议','持续监测，必要时换水/调整水位']]},
+    ],
+    feed:['25.0°C','6.9','11.0 kg','1.4%','07:00 / 17:00','盐度偏高'],
+  },
+  '霞浦鱼井澳养殖点':{
+    status:'amber', tag:'关注', region:'宁德霞浦·沙江',
+    kpi:[['水温','26.8°C','amber'],['溶解氧','5.8 mg/L','amber'],['盐度','29.38 ppt','green'],['今日投喂','13.0 kg','green']],
+    cards:[
+      {tone:'amber',title:'夜间溶氧偏低风险',rows:[
+        ['📊 数据','黎明 DO '+hl('5.8mg/L','amber')+'（偏低）+ 水温26.8℃偏高 + 历史DO多次走低'],
+        ['🧠 经验','高温期夜间溶氧易跌破警戒'],
+        ['🔍 分析','高温降饱和度叠加夜间耗氧，黎明已现偏低'],
+        ['🔮 预测','今夜至凌晨可能 '+hl('跌破5mg/L','amber')],
+        ['✅ 建议','夜间开启增氧、傍晚投喂、加密夜间监测']]},
+    ],
+    feed:['26.8°C','5.8','13.0 kg','1.5%','06:30 / 17:30','夜间DO偏低'],
+  },
+  '闽江大学实验室':{
+    status:'gray', tag:'试验点', region:'福州闽江大学旗山校区',
+    kpi:[['水温','—','gray'],['溶解氧','—','gray'],['盐度','—','gray'],['今日投喂','—','gray']],
+    cards:[
+      {tone:'gray',title:'AI/声纳试验点',rows:[
+        ['📊 数据','实验室无水质传感器，用于 AI 识别与声纳算法试验'],
+        ['🧠 经验','不计入生产分析，仅作算法验证'],
+        ['🔍 分析','试验数据用于模型迭代，不形成养殖结论'],
+        ['🔮 预测','—'],
+        ['✅ 建议','保持试验运行，识别结果回流模型训练']]},
+    ],
+    feed:['—','—','—','—','—','试验点'],
+  },
+};
+const EARLY_TIP = {
+  '连江渔排':{w:'今日',hi:'33',lo:'27',tips:['黎明 DO 3.2 严重偏低，白天先暂停投喂，增氧后视恢复少量投喂','校准 pH/DO 传感器确认数据真实性','大潮期继续关注西侧网衣']},
+  '三沙湾养殖点':{w:'今日',hi:'34',lo:'26',tips:['黎明 DO 6.8 偏低但白天会回升，按 14kg 正常投喂','盐度略偏高持续关注','避开 10–15 点正午']},
+  '罗源湾一号养殖点':{w:'今日',hi:'34',lo:'26',tips:['黎明 DO 7.2 充足，按计划投喂 12.5kg','各项指标正常，维持管理']},
+  '鉴江海区养殖点':{w:'今日',hi:'33',lo:'26',tips:['盐度偏高持续监测','正常投喂 11kg']},
+  '霞浦鱼井澳养殖点':{w:'今日',hi:'34',lo:'26',tips:['黎明 DO 5.8 偏低，白天回升后傍晚投喂','夜间保持增氧']},
+  '闽江大学实验室':{w:'—',hi:'—',lo:'—',tips:['试验点，不参与生产提示']},
+};
+
+/* 场次相关读取：SD(name)=当前场次站点数据；tipsOf(name)=当前场次提示 */
+function isEarly(){ const v=document.getElementById('advBatch')?.value||'18:00'; return parseInt(v)<12; }
+function SD(name){ return isEarly() ? (EARLY[name]||SITES[name]) : SITES[name]; }
+function tipsOf(name){ return isEarly() ? (EARLY_TIP[name]||TIP24[name]) : TIP24[name]; }
+/* 场次选项 = “每日养殖建议”智能体的定时触发时刻（来自 localStorage，默认 06:00/18:00） */
+function buildBatchSel(){
+  let times=['06:00','18:00'];
+  try{ times = JSON.parse(localStorage.getItem('advSchedule')) || times; }catch(e){}
+  if(!times.length) times=['06:00','18:00'];
+  const sel=document.getElementById('advBatch');
+  sel.innerHTML = times.map(t=>`<option value="${t}">${parseInt(t)<12?'🌅 早场':'🌇 晚场'} ${t}</option>`).join('');
+  sel.value = times.find(t=>parseInt(t)>=12) || times[times.length-1];  // 默认晚场
+}
+
+/* ===== 渲染 ===== */
+function cardHTML(c){
+  const t=TONE[c.tone];
+  return `<div class="card" style="box-shadow:none;border:1px solid var(--border);border-left:4px solid ${t.c}">
+    <div class="card-h" style="margin-bottom:8px"><h3 style="font-size:14px">${t.i} ${c.title}</h3><span class="tag ${t.x}">${t.l}</span></div>
+    ${c.rows.map(r=>`<div class="adv-row"><span class="adv-k">${r[0]}</span><span class="adv-v">${r[1]}</span></div>`).join('')}
+  </div>`;
+}
+function kpiHTML(items){
+  return items.map(it=>{
+    const col={red:'var(--red)',amber:'var(--amber)',green:'var(--green)',gray:'var(--text3)'}[it[2]]||'var(--text)';
+    return `<div class="kpi"><div class="lbl">${it[0]}</div><div class="val" style="font-size:22px;color:${col}">${it[1]}</div></div>`;
+  }).join('');
+}
+function bannerHTML(b,site){
+  const t=TONE[b.tone];
+  return `<div class="card mt" style="border-left:4px solid ${t.c}">
+    <div class="card-h"><h3>${t.i} ${site} · ${b.title}</h3><span class="tag ${t.x}">${t.l}</span></div>
+    <div class="grid cols-3" style="gap:10px">${b.a.map(x=>`<div style="background:${t.x==='red'?'#fef2f2':t.x==='amber'?'#fffbeb':'#f0fdf4'};padding:10px;border-radius:8px"><b>${x.split('、')[0]}</b></div>`).join('')}</div>
+  </div>`;
+}
+function feedRow(site){
+  const f=SD(site).feed;
+  return `<tr><td><b>${site}</b></td><td>${f[0]}</td><td>${f[1]}</td><td>${f[2]}</td><td>${f[3]}</td><td>${f[4]}</td><td>${f[5]}</td></tr>`;
+}
+
+function render(){
+  const scope = window.SITE_CTX || '全部站点';
+  const early = isEarly();
+  $('scopeText').innerHTML = (early?'🌅 早场 06:00':'🌇 晚场 18:00')+' · '+(scope==='全部站点'
+    ? '当前分析范围：<b>全部 6 个站点</b>'
+    : `当前分析范围：<b>${scope}</b>（${SD(scope).region}）· <span class="tag ${TONE[SD(scope).status].x}">${SD(scope).tag}</span>`)
+    + ' · '+(early?'基于夜间至黎明数据，侧重夜间溶氧/今日投喂':'基于白天数据+明日预报，侧重夜间值守/明日投喂');
+  $('advFoot').textContent = `📄 历史归档：${archiveLabel()} · 由「每日养殖建议」智能体生成 · GLM-4.6 + 大黄鱼知识库 · 范围：${scope}`;
+  if(scope==='全部站点'){ renderAll(); }
+  else { renderSite(scope); }
+}
+
+function archiveLabel(){
+  const d = document.getElementById('advDate')?.value || '2026-07-15';
+  const b = document.getElementById('advBatch')?.value || '18:00';
+  return `${d} ${b}（${parseInt(b)<12?'早场':'晚场'}）`;
+}
+
+function renderAll(){
+  // KPI 汇总（按当前场次统计）
+  const red = ORDER.filter(s=>SD(s).status==='red').length;
+  const amber = ORDER.filter(s=>SD(s).status==='amber').length;
+  const ok = ORDER.filter(s=>['green','gray'].includes(SD(s).status)).length;
+  $('kpis').innerHTML = kpiHTML([
+    ['分析站点','6','green'],['需处置',String(red),'red'],['需关注',String(amber),'amber'],['正常/试验',String(ok),'green']]);
+  let html = '';
+  // 重点站点 banner（按场次）
+  ORDER.forEach(s=>{ if(SD(s).banner) html += bannerHTML(SD(s).banner,s); });
+  // 全部融合预测卡
+  html += `<div class="card mt"><div class="card-h"><h3>🔮 多源数据融合预测建议</h3><span class="tag blue">按站点分组 · 数据 → 经验 → 分析 → 预测 → 建议</span></div>
+    ${ORDER.map(s=>{
+      const st=TONE[SD(s).status];
+      return `<div style="margin-top:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="tag ${st.x}">${st.i} 📍 ${s}</span>
+          <span class="small muted">${SD(s).region} · ${SD(s).tag}</span>
+        </div>
+        <div class="grid cols-2" style="gap:14px">${SD(s).cards.map(c=>cardHTML(c)).join('')}</div>
+      </div>`;
+    }).join('')}
+    <div class="small muted mt">二期接入生长/低氧/病害小模型后，预测量化精度将进一步提升。</div></div>`;
+  // 正常投喂表
+  html += `<div class="card mt"><div class="card-h"><h3>✅ 各站点投喂建议</h3><span class="more" onclick="exportData('投喂建议')" style="cursor:pointer">导出</span></div>
+    <div class="tbl-wrap"><table><tr><th>站点</th><th>水温</th><th>DO</th><th>建议投喂量</th><th>投喂率</th><th>投喂时刻</th><th>备注</th></tr>
+    ${ORDER.map(feedRow).join('')}</table></div></div>`;
+  // 全局通用提示（不针对单站温度，只给通用海洋气象判断）
+  html += `<div class="card mt" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff">
+    <div class="card-h"><h3 style="color:#fff">🌊 未来 24h 全局提示（通用）</h3></div>
+    <ul style="margin-left:18px;line-height:1.9;font-size:13.5px">
+      <li>农历初一<b>大潮期</b>，各站点加强网衣巡检与溶氧监控（潮汐带来水流与溶氧变化）。</li>
+      <li>夜间至凌晨为<b>溶氧低谷</b>，各站视情增氧、避开低氧时段投喂。</li>
+      <li>无台风/强降水预报，海洋气象整体平稳。<b>各站水温不同，具体见下方专属提示</b>。</li>
+    </ul></div>`;
+  // 各站点专属提示（早场=今日指导，晚场=未来24h）
+  const tipTitle = isEarly() ? '📍 各站点今日投喂与巡检指导' : '📍 各站点未来 24h 专属提示';
+  html += `<div class="card mt"><div class="card-h"><h3>${tipTitle}</h3><span class="tag blue">${isEarly()?'基于黎明数据，指导今日':'按各站水温/水质分别给出'}</span></div>
+    <div class="grid cols-2" style="gap:14px">${ORDER.map(siteTipHTML).join('')}</div></div>`;
+  $('advBody').innerHTML = html;
+}
+
+function siteTipHTML(name){
+  const t=tipsOf(name), st=SD(name).status, ic=TONE[st].i;
+  return `<div class="card" style="box-shadow:none;border:1px solid var(--border)">
+    <div class="card-h" style="margin-bottom:6px"><h3 style="font-size:14px">${ic} ${name}</h3>
+      <span class="muted small">${t.w} ${t.hi}/${t.lo}℃</span></div>
+    <ul style="margin:0 0 0 18px;font-size:12.5px;line-height:1.75;color:var(--text2)">${t.tips.map(x=>`<li>${x}</li>`).join('')}</ul>
+  </div>`;
+}
+
+function renderSite(name){
+  const s = SD(name);
+  $('kpis').innerHTML = kpiHTML(s.kpi);
+  let html = '';
+  if(s.banner) html += bannerHTML(s.banner,name);
+  html += `<div class="card mt"><div class="card-h"><h3>🔮 ${name} · 多源数据融合预测</h3><span class="tag blue">数据 · 经验 · 分析 · 预测 · 建议</span></div>
+    <div class="grid cols-2" style="gap:14px">${s.cards.map(cardHTML).join('')}</div></div>`;
+  html += `<div class="card mt"><div class="card-h"><h3>🍽️ ${name} 投喂建议</h3></div>
+    <div class="tbl-wrap"><table><tr><th>站点</th><th>水温</th><th>DO</th><th>建议投喂量</th><th>投喂率</th><th>投喂时刻</th><th>备注</th></tr>
+    ${feedRow(name)}</table></div></div>`;
+  // 该站点专属提示（早场=今日指导，晚场=未来24h）
+  const t=tipsOf(name);
+  const tipTitle = isEarly() ? `📍 ${name} 今日投喂与巡检指导` : `📍 ${name} 未来 24h 专属提示`;
+  html += `<div class="card mt"><div class="card-h"><h3>${tipTitle}</h3><span class="muted small">${t.w} ${t.hi}/${t.lo}℃</span></div>
+    <ul style="margin-left:18px;font-size:13px;line-height:1.8;color:var(--text2)">${t.tips.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  if(s.status==='green'||s.status==='gray')
+    html += `<div class="card mt center" style="color:var(--text2)"><div style="font-size:30px">${TONE[s.status].i}</div><div class="mt">该站点当前${s.tag}，暂无紧急风险。维持日常管理即可。</div></div>`;
+  $('advBody').innerHTML = html;
+}
+
+function reanalyze(){
+  const body=`<div style="padding:14px 4px">
+    <div style="display:flex;align-items:center;gap:10px;color:#0284c7"><span style="font-size:22px">⚙️</span><b>正在重新汇总数据并调用智能体分析…</b></div>
+    <div style="height:6px;background:#f1f5f9;border-radius:4px;margin:12px 0;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,#0ea5e9,#14b8a6)"></div></div>
+    <div class="ok small">✅ 分析完成 · 已生成 <b>${archiveLabel()}</b> 归档（范围：${window.SITE_CTX||'全部站点'}）</div></div>`;
+  openModal('▶ 立即重新分析', body, {width:440, foot:false});
+}
+
+window.addEventListener('sitechange', render);
+// 切换日期/场次 = 浏览历史归档；切换场次会重渲染内容（早场/晚场不同），日期共用内容只更新归档标识
+function bindArchive(){
+  document.getElementById('advDate').addEventListener('change', ()=>{ render(); });
+  document.getElementById('advBatch').addEventListener('change', ()=>{ render(); });
+}
+bindArchive();
+buildBatchSel();
+render();
+</script>
+</body>
+</html>

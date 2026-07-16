@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>鱼群生物量 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>鱼群生物量（声纳）</h1><p>声纳：博海深衡 M750d · 数据随顶栏全局范围联动 · <span data-scope-label>全部站点</span></p></div>
+        <div><span class="tag blue" data-scope-chip style="display:none"></span> <button class="btn" onclick="sonarLive()">🎬 实时声纳图像</button></div>
+      </div>
+
+      <div class="note blue"><span>📐</span><div>生物量换算：声纳测得体长 <b>L</b> → 体长体重公式 <b>W = 0.024·L^2.848</b>（g, L 单位 cm）→ 单尾均重；<b>生物量 = 计数 N × 均重</b>。参数来源《一期知识库-大黄鱼养殖》，需按实测校准。</div></div>
+
+      <div class="grid kpis">
+        <div class="kpi"><div class="ic">🐟</div><div class="lbl">声纳鱼群计数</div><div class="val">7,820 <small>尾</small></div><div class="sub muted">三沙湾 · 较昨日 -1.2%</div></div>
+        <div class="kpi"><div class="ic">📏</div><div class="lbl">平均体长</div><div class="val">22.6 <small>cm</small></div><div class="sub ok">达标增长</div></div>
+        <div class="kpi"><div class="ic">⚖️</div><div class="lbl">估算生物量</div><div class="val">3.94 <small>吨</small></div><div class="sub muted">均重 ~503g/尾</div></div>
+        <div class="kpi"><div class="ic">🛡️</div><div class="lbl">网衣状态</div><div class="val">完好 <small></small></div><div class="sub ok">上次巡检 07-15</div></div>
+      </div>
+
+      <div class="grid cols-2-1 mt">
+        <div class="card">
+          <div class="card-h"><h3>体长分布直方图</h3></div>
+          <div id="lengthDist" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>生物量变化趋势</h3></div>
+          <div id="biomassTrend" class="chart"></div>
+        </div>
+      </div>
+
+      <div class="grid cols-2 mt">
+        <div class="card">
+          <div class="card-h"><h3>🐟 声纳图像（示意）</h3><span class="tag blue">浊水成像</span></div>
+          <div style="height:240px;background:radial-gradient(circle at 40% 50%,#0f2d4a,#04101f);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#475569">
+            <div class="center"><div style="font-size:40px">📡</div><div class="small mt">声纳实时图像 / 鱼群目标框<br><span class="muted">声纳接入后展示</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🛡️ 网衣巡检结果</h3></div>
+          <table>
+            <tr><th>部位</th><th>状态</th><th>异常</th></tr>
+            <tr><td>东侧网衣</td><td><span class="tag green">完好</span></td><td>—</td></tr>
+            <tr><td>西侧网衣</td><td><span class="tag amber">轻微变形</span></td><td>受流压，关注</td></tr>
+            <tr><td>底部</td><td><span class="tag green">完好</span></td><td>—</td></tr>
+            <tr><td>沉鱼检测</td><td><span class="tag green">无</span></td><td>死亡率 0.05%/日</td></tr>
+          </table>
+          <div class="small muted mt">下次自动巡检：07-16 06:00</div>
+        </div>
+      </div>
+
+      <div class="card mt">
+        <div class="card-h"><h3>各站点鱼群汇总</h3></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>站点</th><th>单元数</th><th>计数(尾)</th><th>平均体长</th><th>均重</th><th>生物量</th><th>摄食响应</th><th>网衣</th></tr>
+          <tr data-site="三沙湾养殖点"><td>三沙湾养殖点</td><td>16</td><td>7,820</td><td>22.6 cm</td><td>503 g</td><td>3.94 吨</td><td>✅ 旺盛</td><td><span class="tag green">完好</span></td></tr>
+          <tr data-site="罗源湾一号养殖点"><td>罗源湾一号</td><td>12</td><td>5,910</td><td>21.2 cm</td><td>418 g</td><td>2.47 吨</td><td>✅ 正常</td><td><span class="tag green">完好</span></td></tr>
+          <tr data-site="连江渔排"><td>连江渔排</td><td>12</td><td>4,860</td><td>20.8 cm</td><td>398 g</td><td>1.93 吨</td><td>⚠️ 偏弱</td><td><span class="tag amber">变形</span></td></tr>
+          <tr data-site="鉴江海区养殖点"><td>鉴江海区</td><td>10</td><td>5,200</td><td>21.8 cm</td><td>455 g</td><td>2.37 吨</td><td>✅ 正常</td><td><span class="tag green">完好</span></td></tr>
+          <tr data-site="霞浦鱼井澳养殖点"><td>霞浦鱼井澳</td><td>13</td><td>6,500</td><td>22.0 cm</td><td>465 g</td><td>3.02 吨</td><td>✅ 正常</td><td><span class="tag green">完好</span></td></tr>
+        </table></div>
+      </div>
+
+      <!-- 按养殖单元 -->
+      <div class="card mt" data-site="三沙湾养殖点">
+        <div class="card-h"><h3>🟦 按养殖单元的声纳数据（三沙湾养殖点 · 16 单元）</h3>
+          <span class="small muted">每个 4×4m 单元独立声纳计数/测长 → 单元生物量</span></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>单元号</th><th>放养数量</th><th>声纳计数</th><th>存活率</th><th>平均体长</th><th>体长区间</th><th>均重</th><th>单元生物量</th><th>声纳覆盖</th></tr>
+          <tr><td>S1</td><td>500</td><td>492</td><td class="ok">98.4%</td><td>22.8 cm</td><td>20–25</td><td>510 g</td><td>250.9 kg</td><td><span class="tag green">固定</span></td></tr>
+          <tr><td>S2</td><td>500</td><td>488</td><td class="ok">97.6%</td><td>22.5 cm</td><td>20–25</td><td>498 g</td><td>243.0 kg</td><td><span class="tag green">固定</span></td></tr>
+          <tr><td>S3</td><td>500</td><td>495</td><td class="ok">99.0%</td><td>22.9 cm</td><td>21–25</td><td>515 g</td><td>254.9 kg</td><td><span class="tag blue">轮巡</span></td></tr>
+          <tr><td>S4</td><td>480</td><td>470</td><td class="ok">97.9%</td><td>22.4 cm</td><td>19–24</td><td>495 g</td><td>232.7 kg</td><td><span class="tag blue">轮巡</span></td></tr>
+          <tr><td>S5</td><td>500</td><td>478</td><td class="warn">95.6%</td><td>22.0 cm</td><td>18–24</td><td>478 g</td><td>228.5 kg</td><td><span class="tag blue">轮巡</span></td></tr>
+          <tr><td>…</td><td colspan="8" class="muted center">另有 11 个单元（S6–S16），合计计数 7,820 尾，生物量 3.94 吨</td></tr>
+        </table></div>
+        <div class="small muted mt">声纳覆盖：固定=该单元常驻 1 台声纳；轮巡=1 台声纳轮转扫描多个相邻单元。存活率 = 声纳计数 / 放养数量。</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['数据','鱼群生物量']);
+function sonarLive(){
+  const body=`<div style="height:280px;background:radial-gradient(circle at 45% 50%,#0f2d4a,#04101f);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#475569;position:relative">
+      <div class="center"><div style="font-size:46px">📡</div><div class="small mt">声纳实时图像 · 浊水成像<br><span class="muted">M750d · 三沙湾养殖点</span></div></div>
+      <span class="tag green" style="position:absolute;top:10px;left:10px">● LIVE</span></div>
+    <div class="grid cols-3 mt" style="gap:10px">
+      <div style="background:#f8fafc;padding:10px;border-radius:8px"><b>计数</b><br>492 尾</div>
+      <div style="background:#f8fafc;padding:10px;border-radius:8px"><b>平均体长</b><br>22.8 cm</div>
+      <div style="background:#f8fafc;padding:10px;border-radius:8px"><b>摄食活跃度</b><br><span class="ok">旺盛</span></div>
+    </div>`;
+  openModal('🎬 实时声纳图像', body, {width:520, saveText:'抓拍存档'});
+}
+const c=id=>echarts.init(document.getElementById(id));
+c('lengthDist').setOption({tooltip:{trigger:'axis'},grid:{left:55,right:30,top:30,bottom:50,containLabel:true},
+  xAxis:{type:'category',name:'体长 (cm)',nameLocation:'middle',nameGap:28,data:['14','16','18','20','22','24','26','28','30']},
+  yAxis:{type:'value',name:'尾数',nameGap:18,nameTextStyle:{padding:[0,0,6,0]}},
+  series:[{type:'bar',data:[120,340,820,1450,1860,1520,980,420,210],itemStyle:{color:'#14b8a6',borderRadius:[4,4,0,0]}}]});
+c('biomassTrend').setOption({tooltip:{trigger:'axis'},grid:{left:55,right:30,top:30,bottom:40,containLabel:true},
+  xAxis:{type:'category',data:['5月','6月上','6月中','6月下','7月上','7月中']},
+  yAxis:{type:'value',name:'吨',nameGap:18,nameTextStyle:{padding:[0,0,6,0]}},
+  series:[{type:'line',areaStyle:{opacity:.15,color:'#0ea5e9'},data:[2.1,2.6,3.0,3.3,3.7,3.94],itemStyle:{color:'#0ea5e9'}}]});
+</script>
+</body>
+</html>

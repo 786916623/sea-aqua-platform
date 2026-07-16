@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>总览驾驶舱 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>总览驾驶舱</h1><p>福建海域网箱养殖 · 6 个站点 · 2026-07-15 23:00 更新</p></div>
+        <div><span class="tag blue" data-scope-chip>🔍 已筛选：全部站点</span> <button class="btn" onclick="exportData('驾驶舱数据')">📥 导出</button> <button class="btn primary" onclick="quickAI()">🤖 一键 AI 分析</button></div>
+      </div>
+
+      <!-- KPI -->
+      <div class="grid kpis">
+        <div class="kpi"><div class="ic">🌊</div><div class="lbl">海上网箱数量</div><div class="val">6 <small>个</small></div><div class="sub muted">福州2 · 霞浦2 · 罗源2</div></div>
+        <div class="kpi"><div class="ic">📡</div><div class="lbl">设备在线 / 离线</div><div class="val">10 <small>/ 20 台</small></div><div class="sub"><span class="delta down">在线率 33%</span></div></div>
+        <div class="kpi"><div class="ic">🚨</div><div class="lbl">活跃告警</div><div class="val">8 <small>条</small></div><div class="sub"><span class="delta down">1 严重 · 7 关注</span></div></div>
+        <div class="kpi"><div class="ic">🐟</div><div class="lbl">存塘生物量</div><div class="val">13.7 <small>吨</small></div><div class="sub ok">声纳计数 · 6 站点</div></div>
+      </div>
+
+      <div class="grid cols-2-1 mt">
+        <!-- 站点分布 -->
+        <div class="card">
+          <div class="card-h"><h3>📍 站点分布与状态</h3><span class="tag blue">高德地图</span></div>
+          <div class="seamap" id="seamap">
+            <svg viewBox="0 0 600 400" id="seaSvg" preserveAspectRatio="xMidYMid slice" style="cursor:grab">
+              <defs>
+                <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#bfdbfe"/><stop offset="1" stop-color="#7dd3fc"/></linearGradient>
+                <linearGradient id="land" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#dcfce7"/><stop offset="1" stop-color="#bbf7d0"/></linearGradient>
+                <pattern id="wave" width="40" height="16" patternUnits="userSpaceOnUse">
+                  <path d="M0 8 Q10 2 20 8 T40 8" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <!-- 可拖动视口 -->
+              <g id="vp">
+                <!-- 海面（加大，防拖动露白） -->
+                <rect x="-1000" y="-700" width="2600" height="1800" fill="url(#sea)"/>
+                <rect x="-1000" y="-700" width="2600" height="1800" fill="url(#wave)"/>
+                <!-- 陆地（福建海岸） -->
+                <path d="M0,0 L130,0 L160,25 L128,55 L116,86 L152,112 L124,146 L104,176 L142,206 L120,242 L136,276 L108,312 L100,352 L122,400 L0,400 Z"
+                  fill="url(#land)" stroke="#86efac" stroke-width="1.5"/>
+                <!-- 地理标注 -->
+                <text x="60" y="115" fill="#15803d" font-size="13" font-weight="600">宁德</text>
+                <text x="55" y="285" fill="#15803d" font-size="13" font-weight="600">福州</text>
+                <text x="455" y="340" fill="#0369a1" font-size="15" font-weight="700" opacity=".6">东 海</text>
+                <text x="430" y="62" fill="#0369a1" font-size="11" opacity=".7">三沙湾</text>
+                <text x="300" y="156" fill="#0369a1" font-size="11" opacity=".7">罗源湾</text>
+                <text x="232" y="222" fill="#0369a1" font-size="11" opacity=".7">闽江口</text>
+                <!-- 站点标记（JS 注入） -->
+                <g id="markers"></g>
+              </g>
+              <!-- 固定 UI（不随拖动） -->
+              <g transform="translate(548,48)" opacity=".6" style="pointer-events:none">
+                <circle r="18" fill="#fff" stroke="#0369a1" stroke-width="1"/>
+                <text x="0" y="-8" text-anchor="middle" font-size="9" fill="#0369a1">N</text>
+                <polygon points="0,-12 4,6 0,2 -4,6" fill="#ef4444"/>
+              </g>
+              <g transform="translate(20,388)" style="pointer-events:none">
+                <line x1="0" y1="0" x2="60" y2="0" stroke="#475569" stroke-width="2"/>
+                <text x="30" y="-4" text-anchor="middle" font-size="9" fill="#475569">≈ 20km</text>
+              </g>
+            </svg>
+            <!-- 详情卡 -->
+            <div class="seamap-detail" id="mapDetail"></div>
+            <!-- 图例 -->
+            <div class="seamap-legend">
+              <span><i style="background:#22c55e"></i>正常</span>
+              <span><i style="background:#f59e0b"></i>关注</span>
+              <span><i style="background:#ef4444"></i>异常</span>
+              <span><i style="background:#94a3b8"></i>测试</span>
+              <span><i style="background:#0ea5e9"></i>实验室</span>
+              <span class="muted">🖱️ 拖动平移 · 滚轮缩放 · 点图标看详情</span>
+            </div>
+          </div>
+          <div class="small muted mt">📍 6 个站点按真实经纬度比例定位 · 福建沿海（宁德霞浦 / 福州连江·罗源）· 示意底图</div>
+          <div class="grid cols-3 mt" style="gap:8px" id="siteMiniList"></div>
+          <div class="grid cols-3 mt" style="gap:8px">
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div class="muted small">养殖单元</div><div style="font-size:16px;font-weight:700">63 <span class="muted small" style="font-weight:400">个 · 4×4m</span></div></div>
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div class="muted small">放养数量</div><div style="font-size:16px;font-weight:700">30,290 <span class="muted small" style="font-weight:400">尾</span></div></div>
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div class="muted small">声纳在网</div><div style="font-size:16px;font-weight:700">29,860 <span class="muted small" style="font-weight:400">尾 · 存活率 98.6%</span></div></div>
+          </div>
+        </div>
+        <!-- 区域 + 设备 -->
+        <div class="card">
+          <div class="card-h"><h3>各区生物量（吨）</h3></div>
+          <div id="regionChart" class="chart sm"></div>
+          <hr>
+          <div class="card-h"><h3>设备类型</h3></div>
+          <div id="deviceChart" class="chart sm"></div>
+          <div class="note" style="margin-top:8px"><span>⚠️</span><div><b>20 台设备离线</b>（含连江光照传感器等），建议现场巡检维护</div></div>
+        </div>
+      </div>
+
+      <div class="grid cols-2 mt">
+        <!-- 水质趋势 -->
+        <div class="card">
+          <div class="card-h"><h3>💧 各站点溶解氧趋势（近 24h）</h3>
+            <span class="tag red">连江渔排异常</span></div>
+          <div id="doChart" class="chart"></div>
+        </div>
+        <!-- 告警 -->
+        <div class="card">
+          <div class="card-h"><h3>⚠️ 近期告警</h3><span class="more">告警中心 →</span></div>
+          <div class="tbl-wrap">
+          <table>
+            <tr><th>级别</th><th>站点</th><th>内容</th><th class="right">时间</th></tr>
+            <tr><td><span class="severity-strip" style="background:#ef4444"></span>严重</td><td>连江渔排</td><td>DO/pH 疑似传感器故障</td><td class="right muted small">07-15 22:45</td></tr>
+            <tr><td><span class="severity-strip" style="background:#f59e0b"></span>关注</td><td>三沙湾养殖点</td><td>盐度达到 31.38ppt</td><td class="right muted small">06-01 08:54</td></tr>
+            <tr><td><span class="severity-strip" style="background:#f59e0b"></span>关注</td><td>霞浦鱼井澳</td><td>溶解氧降至 4.72mg/L</td><td class="right muted small">06-01 08:47</td></tr>
+            <tr><td><span class="severity-strip" style="background:#ef4444"></span>严重</td><td>三沙湾养殖点</td><td>水温高于 31.2°C</td><td class="right muted small">05-31 15:03</td></tr>
+            <tr><td><span class="severity-strip" style="background:#f59e0b"></span>关注</td><td>罗源湾一号</td><td>溶解氧降至 5.08mg/L</td><td class="right muted small">06-01 08:33</td></tr>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 建议 banner -->
+      <div class="card mt" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="min-width:0">
+            <div style="font-size:13px;opacity:.85">🤖 今日重点建议</div>
+            <div style="font-size:16px;font-weight:600;margin-top:2px">🔴 连江渔排 DO 3.9mg/L、pH 6.27 异常 → 暂停投喂、立即增氧、校准 pH/DO 传感器</div>
+          </div>
+          <a href="ai-advice.html" class="btn" style="background:#fff;color:#0284c7;border:none;white-space:nowrap">查看完整建议 →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['总览驾驶舱']);
+
+/* ===== 海域站点地图 ===== */
+/* 拖动平移 + 滚轮缩放 */
+const seaSvg=document.getElementById('seaSvg');
+const vp=document.getElementById('vp');
+let panX=0,panY=0,zoom=1,drag=false,sx,sy,moved=0,justDragged=false;
+function applyVP(){vp.setAttribute('transform',`translate(${panX} ${panY}) scale(${zoom})`);}
+function startDrag(cx,cy){drag=true;sx=cx;sy=cy;moved=0;seaSvg.style.cursor='grabbing';}
+function moveDrag(cx,cy){
+  if(!drag) return;
+  let dx=cx-sx, dy=cy-sy; moved+=Math.abs(dx)+Math.abs(dy);
+  panX=Math.max(-450,Math.min(450,panX+dx));
+  panY=Math.max(-220,Math.min(220,panY+dy));
+  sx=cx;sy=cy;applyVP();
+}
+function endDrag(){
+  if(!drag) return;
+  drag=false;seaSvg.style.cursor='grab';
+  if(moved>5){ justDragged=true; setTimeout(()=>justDragged=false,50); } // 抑制拖动后的误触 click
+}
+seaSvg.addEventListener('mousedown',e=>startDrag(e.clientX,e.clientY));
+window.addEventListener('mousemove',e=>moveDrag(e.clientX,e.clientY));
+window.addEventListener('mouseup',endDrag);
+seaSvg.addEventListener('touchstart',e=>{const t=e.touches[0];startDrag(t.clientX,t.clientY);},{passive:true});
+seaSvg.addEventListener('touchmove',e=>{const t=e.touches[0];moveDrag(t.clientX,t.clientY);},{passive:true});
+seaSvg.addEventListener('touchend',endDrag);
+seaSvg.addEventListener('wheel',e=>{e.preventDefault();zoom*=(e.deltaY<0?1.12:0.89);zoom=Math.max(1,Math.min(3,zoom));applyVP();},{passive:false});
+const SITES = [
+  {n:'连江渔排',x:276,y:266,c:'#ef4444',s:'异常',sx:'red',reg:'福建-福州·连江县晓澳镇',
+    t:'25.8°C',do:'<b style="color:#ef4444">3.9 ⚠</b>',sal:'30.65',cnt:'4,860 尾',fd:'8.0 kg',a:'DO/pH 传感器异常',alert:true},
+  {n:'三沙湾养殖点',x:478,y:80,c:'#f59e0b',s:'关注',sx:'amber',reg:'宁德·三沙湾',
+    t:'25.6°C',do:'8.5',sal:'31.38',cnt:'7,820 尾',fd:'14.0 kg',a:'盐度略高',alert:true},
+  {n:'罗源湾一号',x:300,y:200,c:'#22c55e',s:'正常',sx:'green',reg:'福州罗源·碧里洋屿山',
+    t:'26.7°C',do:'7.81',sal:'29.28',cnt:'5,910 尾',fd:'12.5 kg',a:'指标正常',alert:false},
+  {n:'鉴江海区',x:341,y:200,c:'#22c55e',s:'正常',sx:'green',reg:'福州罗源·鉴江镇',
+    t:'25.1°C',do:'7.15',sal:'31.13',cnt:'5,200 尾',fd:'11.0 kg',a:'指标正常',alert:false},
+  {n:'霞浦鱼井澳',x:441,y:91,c:'#f59e0b',s:'关注',sx:'amber',reg:'宁德霞浦·沙江',
+    t:'27.0°C',do:'8.03',sal:'29.38',cnt:'6,500 尾',fd:'13.0 kg',a:'DO 历史偏低',alert:true},
+  {n:'闽江大学实验室',x:118,y:297,c:'#0ea5e9',s:'实验室',sx:'blue',reg:'福州闽江大学旗山校区',
+    t:'—',do:'—',sal:'—',cnt:'—',fd:'—',a:'AI/声纳试验点',alert:false},
+];
+const SVGNS='http://www.w3.org/2000/svg';
+const g=document.getElementById('markers');
+SITES.forEach((s,i)=>{
+  const grp=document.createElementNS(SVGNS,'g');
+  grp.setAttribute('class','site-mark'); grp.setAttribute('data-i',i);
+  grp.addEventListener('click',()=>{ if(justDragged) return; mapSelect(i); });
+  if(s.alert){
+    const ring=document.createElementNS(SVGNS,'circle');
+    ring.setAttribute('cx',s.x);ring.setAttribute('cy',s.y);ring.setAttribute('r',8);
+    ring.setAttribute('fill','none');ring.setAttribute('stroke',s.c);ring.setAttribute('stroke-width',2);
+    ring.setAttribute('opacity',.6);
+    const a1=document.createElementNS(SVGNS,'animate');a1.setAttribute('attributeName','r');a1.setAttribute('from',8);a1.setAttribute('to',24);a1.setAttribute('dur','2s');a1.setAttribute('repeatCount','indefinite');
+    const a2=document.createElementNS(SVGNS,'animate');a2.setAttribute('attributeName','opacity');a2.setAttribute('from',.6);a2.setAttribute('to',0);a2.setAttribute('dur','2s');a2.setAttribute('repeatCount','indefinite');
+    ring.appendChild(a1);ring.appendChild(a2);grp.appendChild(ring);
+  }
+  const dot=document.createElementNS(SVGNS,'circle');
+  dot.setAttribute('class','dot');dot.setAttribute('cx',s.x);dot.setAttribute('cy',s.y);dot.setAttribute('r',8);
+  dot.setAttribute('fill',s.c);dot.setAttribute('stroke','#fff');dot.setAttribute('stroke-width',2);
+  grp.appendChild(dot);
+  const lab=document.createElementNS(SVGNS,'text');
+  lab.setAttribute('x',s.x+12);lab.setAttribute('y',s.y+4);lab.setAttribute('font-size',10);
+  lab.setAttribute('fill','#0f2d4a');lab.setAttribute('font-weight',600);lab.textContent=s.n;
+  grp.appendChild(lab);
+  g.appendChild(grp);
+});
+function mapSelect(i){
+  document.querySelectorAll('.site-mark').forEach(m=>m.classList.remove('active'));
+  document.querySelector('.site-mark[data-i="'+i+'"]').classList.add('active');
+  const s=SITES[i];
+  document.getElementById('mapDetail').innerHTML=
+    '<h4><span style="width:10px;height:10px;border-radius:50%;background:'+s.c+';display:inline-block"></span>'+s.n+
+      ' <span class="tag '+s.sx+'">'+s.s+'</span></h4>'+
+    '<div class="reg">'+s.reg+'</div>'+
+    '<div class="row"><span>水温</span><b>'+s.t+'</b></div>'+
+    '<div class="row"><span>溶解氧</span><b>'+(typeof s.do==='string'?s.do:s.do)+'</b></div>'+
+    '<div class="row"><span>盐度</span><b>'+s.sal+'</b></div>'+
+    '<div class="row"><span>声纳计数</span><b>'+s.cnt+'</b></div>'+
+    '<div class="row"><span>今日投喂</span><b>'+s.fd+'</b></div>'+
+    '<div class="row" style="border-top:1px solid #f1f5f9;margin-top:4px;padding-top:6px"><span>状态</span><b>'+s.a+'</b></div>'+
+    '<a class="go" href="sites.html">查看站点详情 →</a>';
+  document.getElementById('mapDetail').classList.add('show');
+}
+mapSelect(0); // 默认选中第一个
+
+/* 地图下方站点状态小列表 */
+document.getElementById('siteMiniList').innerHTML = SITES.map((s,i)=>
+  `<div class="sitemini" onclick="mapSelect(${i})" style="display:flex;align-items:center;gap:7px;padding:8px 10px;background:#f8fafc;border-radius:8px;cursor:pointer;border:1px solid #f1f5f9">
+     <span style="width:9px;height:9px;border-radius:50%;background:${s.c};flex-shrink:0"></span>
+     <span style="font-size:12.5px;font-weight:600">${s.n}</span>
+     <span class="muted small" style="margin-left:auto">${s.t.replace('°C','')}</span>
+   </div>`).join('');
+
+const c = id => echarts.init(document.getElementById(id));
+c('regionChart').setOption({tooltip:{trigger:'item',formatter:'{b}: {c} 吨'},
+  series:[{type:'pie',radius:['45%','70%'],data:[
+  {name:'宁德霞浦',value:6.96},{name:'福州罗源',value:4.84},{name:'福建-福州',value:1.93}],
+  itemStyle:{borderRadius:6,borderColor:'#fff',borderWidth:2},label:{fontSize:11,formatter:'{b}\n{c}吨'}}]});
+c('deviceChart').setOption({tooltip:{trigger:'axis'},grid:{left:50,right:20,top:10,bottom:20},
+  xAxis:{type:'category',data:['盐度','PH','MQTT网关','溶解氧','光照'],axisLabel:{fontSize:10,interval:0}},
+  yAxis:{type:'value'},series:[{type:'bar',data:[7,7,7,7,2],itemStyle:{color:'#0ea5e9',borderRadius:[4,4,0,0]},barWidth:18}]});
+c('doChart').setOption({tooltip:{trigger:'axis'},legend:{data:['连江渔排','三沙湾','罗源湾一号','鉴江海区','霞浦鱼井澳','全站平均'],top:0,textStyle:{fontSize:10}},
+  grid:{left:40,right:20,top:34,bottom:25},xAxis:{type:'category',data:['00','03','06','09','12','15','18','21'],axisLabel:{fontSize:10}},
+  yAxis:{type:'value',name:'mg/L',min:2},
+  series:[
+  {name:'连江渔排',type:'line',data:[3.2,3.0,2.8,3.5,4.2,4.0,3.9,3.9],itemStyle:{color:'#ef4444'},lineStyle:{width:2.5}},
+  {name:'三沙湾',type:'line',data:[7.8,7.5,7.6,8.2,8.8,8.6,8.5,8.5],itemStyle:{color:'#22c55e'}},
+  {name:'罗源湾一号',type:'line',data:[7.1,6.9,7.0,7.5,8.1,7.9,7.8,7.81],itemStyle:{color:'#0ea5e9'}},
+  {name:'鉴江海区',type:'line',data:[6.5,6.3,6.4,7.0,7.6,7.4,7.2,7.15],itemStyle:{color:'#14b8a6'}},
+  {name:'霞浦鱼井澳',type:'line',data:[5.5,5.2,5.0,6.5,8.0,7.8,7.5,8.03],itemStyle:{color:'#f59e0b'}},
+  {name:'全站平均',type:'line',data:[5.6,5.8,5.8,6.5,7.3,7.1,7.0,7.1],itemStyle:{color:'#64748b'},lineStyle:{width:2,type:'dashed'},symbol:'none',z:9}]});
+</script>
+</body>
+</html>

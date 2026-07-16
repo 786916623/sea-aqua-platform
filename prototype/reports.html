@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>报表中心 - 智慧海洋养殖管控平台</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content">
+
+      <div class="page-head">
+        <div><h1>报表中心</h1><p>日报 / 周报 / 月报 / 养殖周期报 · 报表随顶栏全局范围联动 · <span data-scope-label>全部站点</span></p></div>
+        <div><span class="tag blue" data-scope-chip style="display:none"></span> <button class="btn primary" onclick="genReport()">📑 生成报表</button></div>
+      </div>
+
+      <!-- 报表类型（可点切换详情） -->
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:14px" id="typeCards"></div>
+
+      <!-- 历史归档 -->
+      <div class="card mt">
+        <div class="card-h"><h3>🗂️ 历史归档</h3><span class="small muted">已生成报表，可查看 / 下载</span></div>
+        <div class="tbl-wrap"><table>
+          <tr><th>报表名称</th><th>类型</th><th>范围</th><th>生成时间</th><th>格式</th><th>操作</th></tr>
+          <tr><td>水质日报</td><td><span class="tag gray">日报</span></td><td>全部站点</td><td class="muted small">07-15 08:00</td><td>PDF</td><td><span class="more" onclick="switchReport('日报')">查看</span> <span class="more">下载</span></td></tr>
+          <tr><td>投喂日报</td><td><span class="tag gray">日报</span></td><td>全部站点</td><td class="muted small">07-15 08:00</td><td>Excel</td><td><span class="more" onclick="switchReport('日报')">查看</span> <span class="more">下载</span></td></tr>
+          <tr><td>第 28 周养殖周报</td><td><span class="tag blue">周报</span></td><td>全部站点</td><td class="muted small">07-14 09:00</td><td>PDF</td><td><span class="more" onclick="switchReport('周报')">查看</span> <span class="more">下载</span></td></tr>
+          <tr><td>6 月养殖月报</td><td><span class="tag green">月报</span></td><td>全部站点</td><td class="muted small">07-01 09:00</td><td>PDF</td><td><span class="more" onclick="switchReport('月报')">查看</span> <span class="more">下载</span></td></tr>
+          <tr><td>6 月饲料效率月报</td><td><span class="tag green">月报</span></td><td>全部站点</td><td class="muted small">07-01 09:00</td><td>Excel</td><td><span class="more" onclick="switchReport('月报')">查看</span> <span class="more">下载</span></td></tr>
+          <tr><td>大黄鱼本批次周期报</td><td><span class="tag amber">周期报</span></td><td>大黄鱼</td><td class="muted small">07-10 10:00</td><td>PDF</td><td><span class="more" onclick="switchReport('周期报')">查看</span> <span class="more">下载</span></td></tr>
+        </table></div>
+      </div>
+
+      <!-- 报表详情（按类型切换） -->
+      <div class="card mt">
+        <div class="card-h"><h3 id="rTitle">📊 月报</h3><span class="tag blue">AI 智能分析</span>
+          <div style="margin-left:auto" id="rTabs"></div></div>
+
+        <div class="grid cols-3" id="rKpis"></div>
+
+        <div class="grid cols-2 mt">
+          <div><div class="small muted mb" id="r1t">生物量增长</div><div id="r1" class="chart sm"></div></div>
+          <div><div class="small muted mb" id="r2t">投喂量与水温</div><div id="r2" class="chart sm"></div></div>
+        </div>
+
+        <hr>
+        <div class="card-h"><h3>🤖 AI 智能分析</h3><span class="more">重新生成</span></div>
+        <div style="background:#f8fafc;border-radius:10px;padding:14px">
+          <div class="grid cols-2" id="rText" style="gap:12px"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+document.getElementById('topbar').innerHTML = topbar(['数据','报表中心']);
+
+const TYPES = [
+  {k:'日报', ic:'📄', sub:'每日 08:00 自动生成', cnt:'3 份'},
+  {k:'周报', ic:'📅', sub:'每周一 09:00', cnt:'2 份'},
+  {k:'月报', ic:'🗓️', sub:'每月 1 日', cnt:'2 份'},
+  {k:'周期报', ic:'🐟', sub:'按养殖批次', cnt:'1 份'},
+];
+let curKind='月报';
+const scopeLabel = ()=>{ const v=window.SITE_CTX; return (!v||v==='全部站点')?'全站汇总':v+' 专报'; };
+
+const REPORTS = {
+ '日报':{
+   period:'2026-07-15',
+   kpis:[['今日投喂','58.5','kg','ok'],['平均溶解氧','7.1','mg/L','ok'],['活跃告警','8','条','down'],['在线设备','10','台','muted']],
+   c1:{t:'水质指标趋势（近 24h）',opt:{tooltip:{trigger:'axis'},legend:{data:['水温','溶解氧'],top:0,textStyle:{fontSize:11}},grid:{left:40,right:40,top:28,bottom:25},xAxis:{type:'category',data:['00','03','06','09','12','15','18','21']},yAxis:[{type:'value',name:'°C'},{type:'value',name:'mg/L'}],series:[{name:'水温',type:'line',data:[25.2,25.0,25.1,25.8,26.3,26.1,25.9,25.8],itemStyle:{color:'#ef4444'}},{name:'溶解氧',type:'line',yAxisIndex:1,data:[6.5,6.0,5.8,7.2,8.1,7.9,7.5,7.1],itemStyle:{color:'#0ea5e9'}}]}},
+   c2:{t:'今日各次投喂量（kg）',opt:{tooltip:{trigger:'axis'},grid:{left:40,right:15,top:15,bottom:25},xAxis:{type:'category',data:['07:00','17:00']},yAxis:{type:'value',name:'kg'},series:[{type:'bar',data:[29.5,29.0],itemStyle:{color:'#14b8a6',borderRadius:[4,4,0,0]},barWidth:30}]}},
+   dims:[['📊 总体表现',['全站投喂 58.5kg、平均 DO 7.1mg/L，养殖状态总体平稳']],
+     ['💧 水质与风险',['连江 DO 3.9/pH 6.27 异常（疑似传感器故障）','三沙湾盐度 31.38 略偏高，关注上升']],
+     ['🍽️ 投喂与生长',['连江已暂停投喂待校准','其余站点按 1.4–1.5%BW 正常投喂']],
+     ['⚙️ 设备与数据',['连江光照传感器离线，20 台设备离线待巡检']],
+     ['🔮 关注',['明日高温 34℃，夜间防泛塘','大潮期加强网衣巡检']]]},
+ '周报':{
+   period:'第 28 周（07-08 ~ 07-14）',
+   kpis:[['周投喂','410','kg','ok'],['周均生物量','13.5','吨','ok'],['周告警','5','条','down'],['平均FCR','1.8','','ok']],
+   c1:{t:'周生物量变化（吨）',opt:{tooltip:{trigger:'axis'},grid:{left:40,right:15,top:15,bottom:25},xAxis:{type:'category',data:['周一','周二','周三','周四','周五','周六','周日']},yAxis:{type:'value',name:'吨'},series:[{type:'line',areaStyle:{opacity:.15},data:[13.2,13.3,13.4,13.5,13.6,13.6,13.7],itemStyle:{color:'#0ea5e9'}}]}},
+   c2:{t:'日投喂量与水温',opt:{tooltip:{trigger:'axis'},legend:{data:['投喂量','水温'],top:0,textStyle:{fontSize:11}},grid:{left:40,right:40,top:28,bottom:25},xAxis:{type:'category',data:['一','二','三','四','五','六','日']},yAxis:[{type:'value',name:'kg'},{type:'value',name:'°C'}],series:[{name:'投喂量',type:'bar',data:[56,58,57,59,60,61,59],itemStyle:{color:'#14b8a6'}},{name:'水温',type:'line',yAxisIndex:1,data:[25,25.5,26,26.5,27,26.8,26.5],itemStyle:{color:'#ef4444'}}]}},
+   dims:[['📊 总体表现',['生物量增至 13.7 吨，周均 FCR 1.8 表现良好']],
+     ['💧 水质与风险',['周三霞浦 DO 偏低 4.72mg/L，已提示夜间增氧','三沙湾水温接近高位，关注高温应激']],
+     ['🍽️ 投喂与生长',['周投喂 410kg，摄食响应总体正常','体长增长符合预期']],
+     ['⚙️ 设备与数据',['连江传感器异常持续，建议本周内完成校准','设备在线率偏低，安排巡检']],
+     ['🔮 趋势',['生物量稳步上升，按计划推进','下周高温持续，重点防低氧']]]},
+ '月报':{
+   period:'2026 年 6 月',
+   kpis:[['月末存塘生物量','13.7','吨','ok'],['饲料消耗','2,054','kg','muted'],['平均FCR','1.8','','ok'],['存活率','98.6','%','ok']],
+   c1:{t:'生物量增长（吨）',opt:{tooltip:{trigger:'axis'},grid:{left:40,right:15,top:15,bottom:25},xAxis:{type:'category',data:['5月底','6月上','6月中','6月下']},yAxis:{type:'value',name:'吨'},series:[{type:'line',areaStyle:{opacity:.15},data:[12.9,13.2,13.5,13.7],itemStyle:{color:'#0ea5e9'}}]}},
+   c2:{t:'投喂量与水温',opt:{tooltip:{trigger:'axis'},legend:{data:['投喂量','水温'],top:0,textStyle:{fontSize:11}},grid:{left:40,right:40,top:28,bottom:25},xAxis:{type:'category',data:['W1','W2','W3','W4']},yAxis:[{type:'value',name:'kg'},{type:'value',name:'°C'}],series:[{name:'投喂量',type:'bar',data:[480,510,520,544],itemStyle:{color:'#14b8a6'}},{name:'水温',type:'line',yAxisIndex:1,data:[24,25.5,27,28],itemStyle:{color:'#ef4444'}}]}},
+   dims:[['📊 总体表现',['存塘生物量环比 +6.3%，平均 FCR 1.8 优于目标 2.0','存活率 98.6%，整体稳健']],
+     ['💧 水质与风险',['三沙湾出现水温过高（31.2°C）','多站夜间 DO 偏低 4.7~5.1mg/L，接近警戒']],
+     ['🍽️ 投喂与生长',['高温期投喂应避正午、傍晚集中','体长分布集中，生长符合预期']],
+     ['⚙️ 设备与数据',['连江 pH/DO 异常疑似故障，需校准后纳入统计','20 台设备离线，已纳入维护计划']],
+     ['🔮 趋势',['下月高温持续，重点关注溶氧与应激','生物量有望月底达 14.5 吨']]]},
+ '周期报':{
+   period:'本批次大黄鱼（05-10 至今）',
+   kpis:[['放养数量','30,290','尾','muted'],['存塘(声纳)','29,860','尾','ok'],['存活率','98.6','%','ok'],['累计饲料','3,200','kg','muted']],
+   c1:{t:'体长增长曲线（cm）',opt:{tooltip:{trigger:'axis'},grid:{left:40,right:15,top:15,bottom:25},xAxis:{type:'category',data:['5月','6月上','6月中','6月下','7月中']},yAxis:{type:'value',name:'cm'},series:[{type:'line',data:[14,17,19,20.5,22.6],itemStyle:{color:'#14b8a6'}}]}},
+   c2:{t:'生物量累积（吨）',opt:{tooltip:{trigger:'axis'},grid:{left:40,right:15,top:15,bottom:25},xAxis:{type:'category',data:['5月','6月上','6月中','6月下','7月中']},yAxis:{type:'value',name:'吨'},series:[{type:'line',areaStyle:{opacity:.15},data:[8.5,10.8,12.0,12.9,13.7],itemStyle:{color:'#0ea5e9'}}]}},
+   dims:[['📊 总体表现',['放养 30,290 尾 → 存塘 29,860 尾，存活率 98.6%','累计饲料 3,200kg，全周期 FCR 1.8']],
+     ['💧 水质与风险',['周期内水质总体可控，偶发低氧已及时处置','未发生重大泛塘或病害事件']],
+     ['🍽️ 投喂与生长',['体长均值 22.6cm（~503g），接近上市规格','投喂-增重对应关系正常']],
+     ['⚙️ 设备与数据',['声纳覆盖 5 个生产站点，计数/测长数据稳定','传感器偶有故障，均已修复']],
+     ['🔮 预测',['预计 2-3 周内达规格','建议按体长分布分批起捕、分级销售，避免集中上市压价']]]},
+};
+
+const colMap={ok:'var(--green)',down:'var(--red)',amber:'var(--amber)',muted:'var(--text3)'};
+function renderTypes(){
+  document.getElementById('typeCards').innerHTML = TYPES.map(t=>`
+    <div class="card" style="cursor:pointer;${curKind===t.k?'border:1px solid var(--primary);box-shadow:0 0 0 2px rgba(14,165,233,.18)':''}" onclick="switchReport('${t.k}')">
+      <div class="card-h" style="margin-bottom:6px"><h3 style="font-size:15px">${t.ic} ${t.k}</h3><span class="tag green small">自动</span></div>
+      <div class="small muted">${t.sub}</div>
+      <div class="mt" style="display:flex;justify-content:space-between;align-items:center"><span class="tag blue small">${t.cnt}</span><span class="more small">查看最新 →</span></div>
+    </div>`).join('');
+}
+function renderTabs(){
+  document.getElementById('rTabs').innerHTML = TYPES.map(t=>`
+    <span class="schip ${curKind===t.k?'active':''}" style="margin:0 0 0 4px" onclick="switchReport('${t.k}')">${t.k}</span>`).join('');
+}
+const r1=echarts.init(document.getElementById('r1'));
+const r2=echarts.init(document.getElementById('r2'));
+function renderReport(){
+  const r=REPORTS[curKind];
+  document.getElementById('rTitle').innerHTML = '📊 '+curKind+' · '+r.period+' · <span class="tag blue">'+scopeLabel()+'</span>';
+  document.getElementById('rKpis').innerHTML = r.kpis.map(k=>`
+    <div class="kpi" style="box-shadow:none;border:1px solid var(--border)">
+      <div class="lbl">${k[0]}</div><div class="val" style="color:${colMap[k[3]]||'var(--text)'}">${k[1]} <small>${k[2]}</small></div>
+    </div>`).join('');
+  document.getElementById('r1t').textContent=r.c1.t;
+  document.getElementById('r2t').textContent=r.c2.t;
+  r1.setOption(r.c1.opt,true); r2.setOption(r.c2.opt,true);
+  document.getElementById('rText').innerHTML = r.dims.map(d=>`
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">${d[0]}</div>
+      <ul style="margin:0 0 0 18px;padding:0;font-size:12.5px;line-height:1.7;color:var(--text2)">${d[1].map(x=>'<li>'+x+'</li>').join('')}</ul>
+    </div>`).join('');
+}
+function switchReport(k){ curKind=k; renderTypes(); renderTabs(); renderReport(); }
+
+window.addEventListener('sitechange', renderReport);
+window.addEventListener('resize',()=>{r1.resize();r2.resize();});
+renderTypes(); renderTabs(); renderReport();
+
+function genReport(){
+  const body=`<div class="form-row">
+    <div class="field"><label>报表类型</label><select class="select"><option>日报</option><option>周报</option><option>月报</option><option>养殖周期报</option></select></div>
+    <div class="field"><label>数据范围</label><select class="select"><option>全部站点</option><option>指定站点…</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="field"><label>起始日期</label><input class="input" type="date" value="2026-07-01"></div>
+    <div class="field"><label>结束日期</label><input class="input" type="date" value="2026-07-15"></div>
+  </div>
+  <div class="row-line" style="border:none;padding:6px 0"><b>报表内容</b></div>
+  <div style="font-size:13px;line-height:2;color:var(--text2)">
+    <div>☑ 水质汇总　☑ 投喂与FCR　☑ 生物量/存活率　☑ 告警统计</div>
+    <div>☑ 气象海洋　☑ 设备健康度　☑ <b>AI 智能分析</b></div>
+  </div>
+  <div class="row-line" style="padding:8px 0"><span>输出格式</span>
+    <select class="select" style="width:auto"><option>PDF</option><option>Excel</option><option>Word</option></select></div>`;
+  openModal('📑 生成报表', body, {saveText:'生成', note:'生成后自动归档至报表中心'});
+}
+</script>
+</body>
+</html>
