@@ -3,7 +3,7 @@
 
 # 保留：原型、文档、Pages 入口
 !/prototype/
-!*.md
+!/docs/
 !.gitignore
 !README.md
 !index.html
