@@ -1,11 +1,12 @@
 # 默认忽略根目录所有文件
 /*
 
-# 保留：原型、文档
+# 保留：原型、文档、Pages 入口
 !/prototype/
 !*.md
 !.gitignore
 !README.md
+!index.html
 
 # 忽略系统文件
 .DS_Store
