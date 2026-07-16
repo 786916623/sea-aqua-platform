@@ -18,6 +18,13 @@ deploy.py — dev → main 一键发布流程
 """
 import subprocess, sys, os
 
+# Windows 控制台默认 GBK，强制 UTF-8 以支持中文/emoji 输出
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 REPO = os.path.dirname(os.path.abspath(__file__))
 DEV  = "dev"
 MAIN = "main"
